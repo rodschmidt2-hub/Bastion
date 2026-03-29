@@ -58,8 +58,11 @@ export default async function ClientePerfilPage({
     // TODO Epic 4: pagamentos ligados a faturas (não cliente_id direto) — stub até lá
     Promise.resolve({ data: [] }),
     supabase.from('documentos_cliente').select('*').eq('cliente_id', id).order('created_at', { ascending: false }),
-    // TODO Story 2.4: criar tabela historico_responsaveis e restaurar query
-    Promise.resolve({ data: [] }),
+    supabase
+      .from('historico_responsaveis')
+      .select('created_at, responsavel_anterior:responsavel_anterior_id(nome, email), responsavel_novo:responsavel_novo_id(nome, email)')
+      .eq('cliente_id', id)
+      .order('created_at', { ascending: false }),
   ])
 
   const mrr = (produtos ?? [])

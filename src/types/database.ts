@@ -120,6 +120,7 @@ export interface Documento {
 // ── Histórico de responsáveis ─────────────────────────────────
 export interface HistoricoResponsavel {
   id: string
+  agencia_id: string
   cliente_id: string
   responsavel_anterior_id: string | null
   responsavel_novo_id: string | null
