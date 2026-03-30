@@ -156,6 +156,24 @@ export async function renovarContratoItem(
   return { success: true }
 }
 
+export async function assinarContrato(clienteId: string, contratoId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const { error } = await supabase
+    .from('contratos')
+    .update({
+      is_assinado: true,
+      assinado_em: new Date().toISOString(),
+      assinado_por: user?.id ?? null,
+    } as any)
+    .eq('id', contratoId)
+
+  if (error) return { error: error.message }
+  revalidatePath(`/clientes/${clienteId}`)
+  return { success: true }
+}
+
 export async function atualizarStatusContratoItem(
   itemId: string,
   clienteId: string,

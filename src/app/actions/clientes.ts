@@ -142,6 +142,41 @@ export async function reativarCliente(id: string) {
   return { success: true }
 }
 
+export async function ativarCliente(id: string) {
+  const supabase = await createClient()
+  const profile = await getProfile()
+  if (!profile?.agencia_id) return { error: 'Perfil não encontrado' }
+
+  // Verifica se existe ao menos um contrato assinado
+  const { data: contratos } = await supabase
+    .from('contratos')
+    .select('id, is_assinado')
+    .eq('cliente_id', id)
+
+  const temAssinado = (contratos ?? []).some((c: any) => c.is_assinado === true)
+  if (!temAssinado) return { error: 'É necessário um contrato assinado para ativar o cliente' }
+
+  const { error } = await supabase
+    .from('clientes')
+    .update({ status: 'ativo' as ClienteStatus })
+    .eq('id', id)
+
+  if (error) return { error: error.message }
+
+  await supabase.from('eventos_cliente').insert({
+    agencia_id: profile.agencia_id,
+    cliente_id: id,
+    tipo: 'status_change',
+    descricao: 'Cliente ativado após assinatura de contrato.',
+    usuario_id: profile.id,
+    dados: { status_anterior: 'contrato_pendente', status_novo: 'ativo' },
+  })
+
+  revalidatePath('/clientes')
+  revalidatePath(`/clientes/${id}`)
+  return { success: true }
+}
+
 export async function saveNotaFinanceira(clienteId: string, conteudo: string) {
   const supabase = await createClient()
   const { error } = await supabase.from('clientes').update({ nota_financeira: conteudo }).eq('id', clienteId)

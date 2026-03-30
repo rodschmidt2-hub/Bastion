@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, AlertTriangle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getProfile } from '@/lib/auth/get-profile'
 import { Suspense } from 'react'
@@ -17,17 +17,18 @@ import { calcularHealthScore } from '@/lib/health-score'
 import type { Cliente, Profile, ProdutoContratadoView, ProdutoAgencia, ProdutoOferta, Contrato, Documento, ContatoCliente, NpsRegistro, Renovacao, UserRole } from '@/types/database'
 
 const statusBadge: Record<string, string> = {
-  ativo:        'bg-emerald-50 text-emerald-700',
-  inadimplente: 'bg-red-50 text-red-700',
-  pausado:      'bg-amber-50 text-amber-700',
-  cancelado:    'bg-slate-100 text-slate-500',
-  inativo:      'bg-slate-100 text-slate-500',
-  suspenso:     'bg-orange-50 text-orange-700',
+  ativo:              'bg-emerald-50 text-emerald-700',
+  inadimplente:       'bg-red-50 text-red-700',
+  pausado:            'bg-amber-50 text-amber-700',
+  cancelado:          'bg-slate-100 text-slate-500',
+  inativo:            'bg-slate-100 text-slate-500',
+  suspenso:           'bg-orange-50 text-orange-700',
+  contrato_pendente:  'bg-blue-50 text-blue-600',
 }
 
 const statusLabel: Record<string, string> = {
   ativo: 'Ativo', inadimplente: 'Inadimplente', pausado: 'Pausado', cancelado: 'Cancelado',
-  inativo: 'Inativo', suspenso: 'Suspenso',
+  inativo: 'Inativo', suspenso: 'Suspenso', contrato_pendente: 'Contrato Pendente',
 }
 
 export default async function ClientePerfilPage({
@@ -165,6 +166,9 @@ export default async function ClientePerfilPage({
     ultimaNps,
   })
 
+  const semContratoAtivo = !['cancelado', 'inativo'].includes(c.status) &&
+    !(contratos ?? []).some((ct) => ct.status === 'ativo')
+
   return (
     <div className="space-y-5">
       {/* Breadcrumb */}
@@ -172,6 +176,16 @@ export default async function ClientePerfilPage({
         <ArrowLeft className="h-3.5 w-3.5" />
         Clientes
       </Link>
+
+      {/* Alerta: sem contrato ativo */}
+      {semContratoAtivo && (
+        <div className="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+          <AlertTriangle className="h-4 w-4 shrink-0 text-red-500" />
+          <p className="text-sm font-medium text-red-700">
+            Este cliente não possui contrato ativo. Acesse a aba <strong>Contratos</strong> e regularize a situação.
+          </p>
+        </div>
+      )}
 
       {/* Header card */}
       <div className="rounded-xl border border-slate-200 bg-white">
@@ -219,6 +233,7 @@ export default async function ClientePerfilPage({
             <PerfilActionsBar
               cliente={c}
               responsaveis={(responsaveis ?? []) as Pick<Profile, 'id' | 'nome' | 'email'>[]}
+              contratos={(contratos ?? []) as Contrato[]}
             />
           </div>
         </div>

@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useTransition, useRef } from 'react'
-import { Plus, X, AlertTriangle, FileText } from 'lucide-react'
-import { createContrato, updateContratoStatus } from '@/app/actions/contratos'
+import { Plus, X, AlertTriangle, FileText, CheckCircle2, Clock } from 'lucide-react'
+import { createContrato, updateContratoStatus, assinarContrato } from '@/app/actions/contratos'
 import type { Contrato, ContratoStatus, ProdutoContratadoView } from '@/types/database'
 
 const statusMap: Record<ContratoStatus, { label: string; badge: string }> = {
@@ -43,8 +43,15 @@ interface ContratosTabProps {
 export function ContratosTab({ clienteId, contratos, produtos }: ContratosTabProps) {
   const [showForm, setShowForm] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const [signPending, startSignTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const formRef = useRef<HTMLFormElement>(null)
+
+  function handleAssinar(contratoId: string) {
+    startSignTransition(async () => {
+      await assinarContrato(clienteId, contratoId)
+    })
+  }
 
   // Group produtos by contrato_id
   const produtosPorContrato = produtos.reduce<Record<string, ProdutoContratadoView[]>>((acc, p) => {
@@ -68,6 +75,7 @@ export function ContratosTab({ clienteId, contratos, produtos }: ContratosTabPro
 
   const ativos = contratos.filter(c => c.status !== 'encerrado' && c.status !== 'cancelado')
   const historico = contratos.filter(c => c.status === 'encerrado' || c.status === 'cancelado')
+  const temContratoAtivo = contratos.some(c => c.status === 'ativo')
 
   const mrrTotal = contratos
     .filter(c => c.status === 'ativo')
@@ -78,6 +86,16 @@ export function ContratosTab({ clienteId, contratos, produtos }: ContratosTabPro
 
   return (
     <div className="p-6 space-y-5">
+      {/* Alerta: sem contrato ativo */}
+      {!temContratoAtivo && contratos.length > 0 && (
+        <div className="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+          <AlertTriangle className="h-4 w-4 shrink-0 text-red-500" />
+          <p className="text-sm font-medium text-red-700">
+            Cliente sem contrato ativo — verifique o status dos contratos abaixo.
+          </p>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-slate-500">
@@ -175,6 +193,26 @@ export function ContratosTab({ clienteId, contratos, produtos }: ContratosTabPro
                 </p>
               </div>
               <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${s.badge}`}>{s.label}</span>
+              {/* Badge assinatura */}
+              {(c as any).is_assinado ? (
+                <span className="shrink-0 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
+                  <CheckCircle2 className="h-3 w-3" /> Assinado
+                </span>
+              ) : (
+                <button
+                  onClick={() => handleAssinar(c.id)}
+                  disabled={signPending}
+                  className="shrink-0 inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+                >
+                  <Clock className="h-3 w-3" /> Marcar como assinado
+                </button>
+              )}
+
+              {/* ClickSign placeholder */}
+              <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-medium text-slate-400">
+                ClickSign — em breve
+              </span>
+
               {c.documento_url && (
                 <a href={c.documento_url} target="_blank" rel="noopener noreferrer"
                   className="shrink-0 rounded-lg border border-slate-200 px-2.5 py-1 text-xs text-slate-600 hover:bg-slate-50">

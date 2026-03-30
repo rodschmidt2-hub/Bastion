@@ -39,7 +39,20 @@ export type ProdutoOferta = Tables<'produto_ofertas'>
 export type ContratoStatus = Enums<'contrato_status'>
 export type ProdutoStatus = Enums<'produto_status'>
 
+// Inclui 'contrato_pendente' adicionado via migration (gerado ainda não atualizado)
+export type ClienteStatusExtended = Enums<'cliente_status'> | 'contrato_pendente'
+
 export type Contrato = Tables<'contratos'>
+
+// Tipo estendido com campos da migration 20260330000004 (gerado ainda não atualizado)
+export type ContratoComAssinatura = Contrato & {
+  is_assinado: boolean
+  assinado_em: string | null
+  assinado_por: string | null
+  clicksign_key: string | null
+  clicksign_status: string | null
+  clicksign_webhook: Record<string, unknown> | null
+}
 export type ContratoItem = Tables<'contrato_itens'>
 
 /** View: contrato_itens JOIN contratos JOIN produtos_agencia (com joins de cliente) */
