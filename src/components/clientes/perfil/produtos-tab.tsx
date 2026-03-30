@@ -6,7 +6,7 @@ import { atualizarStatusContratoItem, removerProdutoCliente } from '@/app/action
 import { AdicionarProdutoModal } from './adicionar-produto-modal'
 import { RenovacaoModal } from './renovacao-modal'
 import { RenovacoesHistorico } from './renovacoes-historico'
-import type { ProdutoContratadoView, ProdutoAgencia, ProdutoOferta, ProdutoStatus, Contrato, Renovacao } from '@/types/database'
+import type { ProdutoContratadoView, ProdutoAgencia, ProdutoOferta, ProdutoStatus, Contrato, Renovacao, UserRole } from '@/types/database'
 
 function daysUntil(dateStr: string): number {
   return Math.ceil((new Date(dateStr).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
@@ -59,9 +59,10 @@ interface ProdutosTabProps {
   catalogo: ProdutoAgencia[]
   ofertasMap: Record<string, ProdutoOferta[]>
   renovacoesMap: Record<string, any[]>
+  userRole?: UserRole
 }
 
-export function ProdutosTab({ clienteId, contratoAtivo, produtos, catalogo, ofertasMap, renovacoesMap }: ProdutosTabProps) {
+export function ProdutosTab({ clienteId, contratoAtivo, produtos, catalogo, ofertasMap, renovacoesMap, userRole }: ProdutosTabProps) {
   const [isPending, startTransition] = useTransition()
   const [showAdd, setShowAdd] = useState(false)
   const [renovandoItem, setRenovandoItem] = useState<ProdutoContratadoView | null>(null)
@@ -198,6 +199,7 @@ export function ProdutosTab({ clienteId, contratoAtivo, produtos, catalogo, ofer
         clienteId={clienteId}
         catalogo={catalogo}
         ofertasMap={ofertasMap}
+        userRole={userRole}
       />
 
       {renovandoItem && (

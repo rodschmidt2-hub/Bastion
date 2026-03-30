@@ -262,6 +262,7 @@ export default async function ClientePerfilPage({
               catalogo={(catalogo ?? []) as ProdutoAgencia[]}
               ofertasMap={ofertasMap}
               renovacoesMap={renovacoesMap}
+              userRole={profile?.role ?? 'operacional'}
             />
           )}
           {tab === 'contratos' && (

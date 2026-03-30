@@ -63,6 +63,19 @@ export async function adicionarProdutoCliente(
   const dataInicio = formData.get('data_inicio') as string
   if (!dataInicio) return { error: 'Data de início é obrigatória' }
 
+  // Negociação especial — só gestor e admin podem definir
+  const valorEspecialStr = (formData.get('valor_especial') as string) || null
+  const valorEspecialMotivo = (formData.get('valor_especial_motivo') as string) || null
+  const podeNegociarEspecial = profile.role === 'gestor' || profile.role === 'admin'
+
+  if (valorEspecialStr && !podeNegociarEspecial) {
+    return { error: 'Sem permissão para definir negociação especial' }
+  }
+
+  const valorEspecial = valorEspecialStr && podeNegociarEspecial
+    ? parseFloat(valorEspecialStr)
+    : null
+
   // Auto-cria contrato padrão se o cliente não tiver um ativo
   let resolvedContratoId = contratoId
   if (!resolvedContratoId) {
@@ -85,15 +98,20 @@ export async function adicionarProdutoCliente(
     resolvedContratoId = novoContrato.id
   }
 
+  const { data: { user } } = await supabase.auth.getUser()
+
   const { error } = await supabase.from('contrato_itens').insert({
-    agencia_id:       profile.agencia_id,
-    contrato_id:      resolvedContratoId,
-    produto_id:       produtoId,
-    oferta_id:        ofertaId,
-    valor_negociado:  parseFloat(valorStr),
-    data_inicio_item: dataInicio,
-    status:           'ativo' as ProdutoStatus,
-  })
+    agencia_id:             profile.agencia_id,
+    contrato_id:            resolvedContratoId,
+    produto_id:             produtoId,
+    oferta_id:              ofertaId,
+    valor_negociado:        parseFloat(valorStr),
+    valor_especial:         valorEspecial,
+    valor_especial_motivo:  valorEspecial ? valorEspecialMotivo : null,
+    valor_especial_por:     valorEspecial ? (user?.id ?? null) : null,
+    data_inicio_item:       dataInicio,
+    status:                 'ativo' as ProdutoStatus,
+  } as any)
 
   if (error) return { error: error.message }
   revalidatePath(`/clientes/${clienteId}`)
