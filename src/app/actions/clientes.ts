@@ -2,33 +2,40 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { getProfile } from '@/lib/auth/get-profile'
 import type { ClienteStatus, ClienteSegmento, ClientePorte } from '@/types/database'
+
+function parseClienteForm(formData: FormData) {
+  return {
+    razao_social:              formData.get('nome') as string,
+    cnpj:                      (formData.get('cnpj') as string) || null,
+    segmento:                  (formData.get('segmento') as ClienteSegmento) || null,
+    porte:                     (formData.get('porte') as ClientePorte) || null,
+    logradouro:                (formData.get('endereco_logradouro') as string) || null,
+    cidade:                    (formData.get('endereco_cidade') as string) || null,
+    uf:                        (formData.get('endereco_estado') as string) || null,
+    cep:                       (formData.get('endereco_cep') as string) || null,
+    resp_financeiro_nome:      (formData.get('resp_financeiro_nome') as string) || null,
+    resp_financeiro_email:     (formData.get('resp_financeiro_email') as string) || null,
+    resp_financeiro_telefone:  (formData.get('resp_financeiro_telefone') as string) || null,
+    decisor_nome:              (formData.get('decisor_nome') as string) || null,
+    decisor_email:             (formData.get('decisor_email') as string) || null,
+    decisor_telefone:          (formData.get('decisor_telefone') as string) || null,
+    responsavel_id:            (formData.get('responsavel_interno_id') as string) || null,
+    observacoes:               (formData.get('observacoes') as string) || null,
+  }
+}
 
 export async function createCliente(formData: FormData) {
   const supabase = await createClient()
+  const profile = await getProfile()
+  if (!profile?.agencia_id) return { error: 'Perfil não encontrado' }
 
-  const data = {
-    nome: formData.get('nome') as string,
-    cnpj: (formData.get('cnpj') as string) || null,
-    segmento: (formData.get('segmento') as ClienteSegmento) || null,
-    porte: (formData.get('porte') as ClientePorte) || null,
-    endereco_logradouro: (formData.get('endereco_logradouro') as string) || null,
-    endereco_cidade: (formData.get('endereco_cidade') as string) || null,
-    endereco_estado: (formData.get('endereco_estado') as string) || null,
-    endereco_cep: (formData.get('endereco_cep') as string) || null,
-    resp_financeiro_nome: (formData.get('resp_financeiro_nome') as string) || null,
-    resp_financeiro_email: (formData.get('resp_financeiro_email') as string) || null,
-    resp_financeiro_telefone: (formData.get('resp_financeiro_telefone') as string) || null,
-    decisor_nome: (formData.get('decisor_nome') as string) || null,
-    decisor_email: (formData.get('decisor_email') as string) || null,
-    decisor_telefone: (formData.get('decisor_telefone') as string) || null,
-    responsavel_interno_id: (formData.get('responsavel_interno_id') as string) || null,
-    observacoes: (formData.get('observacoes') as string) || null,
-  }
+  const data = parseClienteForm(formData)
+  if (!data.razao_social) return { error: 'Nome da clínica é obrigatório' }
 
-  if (!data.nome) return { error: 'Nome da clínica é obrigatório' }
-
-  const { error } = await supabase.from('clientes').insert(data)
+  const codigo_cliente = `CLI-${Date.now().toString(36).toUpperCase()}`
+  const { error } = await supabase.from('clientes').insert({ ...data, agencia_id: profile.agencia_id, codigo_cliente })
   if (error) return { error: error.message }
 
   revalidatePath('/clientes')
@@ -38,45 +45,25 @@ export async function createCliente(formData: FormData) {
 export async function updateCliente(id: string, formData: FormData) {
   const supabase = await createClient()
 
-  // Capturar responsável atual para detectar mudança e registrar histórico
   const { data: clienteAntes } = await supabase
     .from('clientes')
-    .select('responsavel_interno_id, agencia_id')
+    .select('responsavel_id, agencia_id')
     .eq('id', id)
     .single()
 
-  const data = {
-    nome: formData.get('nome') as string,
-    cnpj: (formData.get('cnpj') as string) || null,
-    segmento: (formData.get('segmento') as ClienteSegmento) || null,
-    porte: (formData.get('porte') as ClientePorte) || null,
-    endereco_logradouro: (formData.get('endereco_logradouro') as string) || null,
-    endereco_cidade: (formData.get('endereco_cidade') as string) || null,
-    endereco_estado: (formData.get('endereco_estado') as string) || null,
-    endereco_cep: (formData.get('endereco_cep') as string) || null,
-    resp_financeiro_nome: (formData.get('resp_financeiro_nome') as string) || null,
-    resp_financeiro_email: (formData.get('resp_financeiro_email') as string) || null,
-    resp_financeiro_telefone: (formData.get('resp_financeiro_telefone') as string) || null,
-    decisor_nome: (formData.get('decisor_nome') as string) || null,
-    decisor_email: (formData.get('decisor_email') as string) || null,
-    decisor_telefone: (formData.get('decisor_telefone') as string) || null,
-    responsavel_interno_id: (formData.get('responsavel_interno_id') as string) || null,
-    observacoes: (formData.get('observacoes') as string) || null,
-  }
-
-  if (!data.nome) return { error: 'Nome da clínica é obrigatório' }
+  const data = parseClienteForm(formData)
+  if (!data.razao_social) return { error: 'Nome da clínica é obrigatório' }
 
   const { error } = await supabase.from('clientes').update(data).eq('id', id)
   if (error) return { error: error.message }
 
-  // Registrar histórico se responsável mudou
-  if (clienteAntes && clienteAntes.responsavel_interno_id !== data.responsavel_interno_id) {
+  if (clienteAntes && clienteAntes.responsavel_id !== data.responsavel_id) {
     const { data: { user } } = await supabase.auth.getUser()
     await supabase.from('historico_responsaveis').insert({
       agencia_id: clienteAntes.agencia_id,
       cliente_id: id,
-      responsavel_anterior_id: clienteAntes.responsavel_interno_id,
-      responsavel_novo_id: data.responsavel_interno_id,
+      responsavel_anterior_id: clienteAntes.responsavel_id,
+      responsavel_novo_id: data.responsavel_id,
       alterado_por_id: user?.id ?? null,
     })
   }
@@ -86,49 +73,78 @@ export async function updateCliente(id: string, formData: FormData) {
   return { success: true }
 }
 
-export async function updateResponsavelInterno(
-  clienteId: string,
-  novoResponsavelId: string | null
-) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Não autenticado' }
-
-  const { data: clienteAtual } = await supabase
-    .from('clientes')
-    .select('responsavel_interno_id, agencia_id')
-    .eq('id', clienteId)
-    .single()
-
-  if (!clienteAtual) return { error: 'Cliente não encontrado' }
-
-  if (clienteAtual.responsavel_interno_id === novoResponsavelId) {
-    return { success: true }
-  }
-
-  const { error: updateError } = await supabase
-    .from('clientes')
-    .update({ responsavel_interno_id: novoResponsavelId })
-    .eq('id', clienteId)
-
-  if (updateError) return { error: updateError.message }
-
-  await supabase.from('historico_responsaveis').insert({
-    agencia_id: clienteAtual.agencia_id,
-    cliente_id: clienteId,
-    responsavel_anterior_id: clienteAtual.responsavel_interno_id,
-    responsavel_novo_id: novoResponsavelId,
-    alterado_por_id: user.id,
-  })
-
-  revalidatePath(`/clientes/${clienteId}`)
-  return { success: true }
-}
-
 export async function updateClienteStatus(id: string, status: ClienteStatus) {
   const supabase = await createClient()
   const { error } = await supabase.from('clientes').update({ status }).eq('id', id)
   if (error) return { error: error.message }
   revalidatePath('/clientes')
+  return { success: true }
+}
+
+export async function desativarCliente(id: string, motivo: string) {
+  const supabase = await createClient()
+  const profile = await getProfile()
+  if (!profile?.agencia_id) return { error: 'Perfil não encontrado' }
+  if (!motivo.trim()) return { error: 'Motivo é obrigatório' }
+
+  const hoje = new Date().toISOString().split('T')[0]
+
+  const { error } = await supabase.from('clientes').update({
+    status: 'inativo' as any,
+    motivo_inativacao: motivo,
+    data_inativacao: hoje,
+  }).eq('id', id)
+
+  if (error) return { error: error.message }
+
+  await supabase.from('eventos_cliente').insert({
+    agencia_id: profile.agencia_id,
+    cliente_id: id,
+    tipo: 'status_change',
+    descricao: `Cliente desativado. Motivo: ${motivo}`,
+    usuario_id: profile.id,
+    dados: { status_anterior: 'ativo', status_novo: 'inativo', motivo },
+  })
+
+  revalidatePath('/clientes')
+  revalidatePath(`/clientes/${id}`)
+  return { success: true }
+}
+
+export async function reativarCliente(id: string) {
+  const supabase = await createClient()
+  const profile = await getProfile()
+  if (!profile?.agencia_id) return { error: 'Perfil não encontrado' }
+
+  const { data: cliente } = await supabase.from('clientes').select('status').eq('id', id).single()
+  const statusAnterior = cliente?.status ?? 'inativo'
+
+  const { error } = await supabase.from('clientes').update({
+    status: 'ativo' as any,
+    motivo_inativacao: null,
+    data_inativacao: null,
+    data_suspensao: null,
+  }).eq('id', id)
+
+  if (error) return { error: error.message }
+
+  await supabase.from('eventos_cliente').insert({
+    agencia_id: profile.agencia_id,
+    cliente_id: id,
+    tipo: 'status_change',
+    descricao: `Cliente reativado.`,
+    usuario_id: profile.id,
+    dados: { status_anterior: statusAnterior, status_novo: 'ativo' },
+  })
+
+  revalidatePath('/clientes')
+  revalidatePath(`/clientes/${id}`)
+  return { success: true }
+}
+
+export async function saveNotaFinanceira(clienteId: string, conteudo: string) {
+  const supabase = await createClient()
+  const { error } = await supabase.from('clientes').update({ nota_financeira: conteudo } as any).eq('id', clienteId)
+  if (error) return { error: error.message }
   return { success: true }
 }

@@ -2,15 +2,18 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Search, Plus, Pencil } from 'lucide-react'
+import { Search, Plus, Pencil, ArrowRight } from 'lucide-react'
 import { ClienteDrawer } from './cliente-drawer'
-import type { Cliente, ClienteStatus, Profile } from '@/types/database'
+import { HealthScoreBadge } from './health-score-badge'
+import type { Cliente, ClienteStatus, ContatoCliente, Profile } from '@/types/database'
 
-const statusBadge: Record<ClienteStatus, { label: string; className: string }> = {
+const statusBadge: Record<string, { label: string; className: string }> = {
   ativo: { label: 'Ativo', className: 'bg-emerald-50 text-emerald-700' },
   inadimplente: { label: 'Inadimplente', className: 'bg-red-50 text-red-700' },
   pausado: { label: 'Pausado', className: 'bg-amber-50 text-amber-700' },
   cancelado: { label: 'Cancelado', className: 'bg-slate-100 text-slate-500' },
+  inativo: { label: 'Inativo', className: 'bg-slate-100 text-slate-500' },
+  suspenso: { label: 'Suspenso', className: 'bg-orange-50 text-orange-700' },
 }
 
 const segmentoLabel: Record<string, string> = {
@@ -19,19 +22,36 @@ const segmentoLabel: Record<string, string> = {
   especialidade: 'Especialidade',
 }
 
+function NpsBadge({ score }: { score: number | undefined }) {
+  if (score === undefined) return <span className="text-xs text-slate-300">—</span>
+  const [cls, label] = score >= 9
+    ? ['bg-emerald-50 text-emerald-700', 'Promotor']
+    : score >= 7
+    ? ['bg-amber-50 text-amber-700', 'Neutro']
+    : ['bg-red-50 text-red-700', 'Detrator']
+  return (
+    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${cls}`}>
+      {score} · {label}
+    </span>
+  )
+}
+
 interface ClientesTableProps {
   clientes: Cliente[]
   responsaveis: Pick<Profile, 'id' | 'nome' | 'email'>[]
+  contatoMap: Record<string, ContatoCliente>
+  npsMap: Record<string, number>
+  healthScoreMap: Record<string, { score: number; pontualidade: number; nps: number; longevidade: number; suspenso: boolean }>
 }
 
-export function ClientesTable({ clientes, responsaveis }: ClientesTableProps) {
+export function ClientesTable({ clientes, responsaveis, contatoMap, npsMap, healthScoreMap }: ClientesTableProps) {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<ClienteStatus | ''>('')
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [editingCliente, setEditingCliente] = useState<Cliente | null>(null)
 
   const filtered = clientes.filter((c) => {
-    const matchSearch = c.nome.toLowerCase().includes(search.toLowerCase()) ||
+    const matchSearch = c.razao_social.toLowerCase().includes(search.toLowerCase()) ||
       (c.cnpj ?? '').includes(search)
     const matchStatus = !statusFilter || c.status === statusFilter
     return matchSearch && matchStatus
@@ -70,6 +90,8 @@ export function ClientesTable({ clientes, responsaveis }: ClientesTableProps) {
             <option value="ativo">Ativo</option>
             <option value="inadimplente">Inadimplente</option>
             <option value="pausado">Pausado</option>
+            <option value="inativo">Inativo</option>
+            <option value="suspenso">Suspenso</option>
             <option value="cancelado">Cancelado</option>
           </select>
         </div>
@@ -104,14 +126,17 @@ export function ClientesTable({ clientes, responsaveis }: ClientesTableProps) {
               <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-400">Segmento</th>
               <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-400">Status</th>
               <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-400">Responsável</th>
+              <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-400">NPS</th>
+              <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-400">Health</th>
               <th className="px-5 py-3 text-right text-xs font-medium uppercase tracking-wide text-slate-400">Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-50">
             {filtered.map((cliente) => {
-              const badge = statusBadge[cliente.status]
-              const responsavel = responsaveis.find((r) => r.id === cliente.responsavel_interno_id)
-              const initials = cliente.nome.slice(0, 2).toUpperCase()
+              const badge = statusBadge[cliente.status as ClienteStatus] ?? statusBadge.cancelado
+              const responsavel = responsaveis.find((r) => r.id === cliente.responsavel_id)
+              const contatoPrincipal = contatoMap[cliente.id]
+              const initials = cliente.razao_social.slice(0, 2).toUpperCase()
 
               return (
                 <tr key={cliente.id} className="group hover:bg-slate-50/50">
@@ -121,8 +146,15 @@ export function ClientesTable({ clientes, responsaveis }: ClientesTableProps) {
                         {initials}
                       </div>
                       <div>
-                        <p className="font-medium text-slate-800 hover:text-blue-600">{cliente.nome}</p>
-                        {cliente.cnpj && <p className="text-xs text-slate-400">{cliente.cnpj}</p>}
+                        <p className="font-medium text-slate-800 hover:text-blue-600">{cliente.razao_social}</p>
+                        {contatoPrincipal ? (
+                          <p className="text-xs text-slate-400">
+                            {contatoPrincipal.nome}
+                            {contatoPrincipal.whatsapp && ` · ${contatoPrincipal.whatsapp}`}
+                          </p>
+                        ) : (
+                          cliente.cnpj && <p className="text-xs text-slate-400">{cliente.cnpj}</p>
+                        )}
                       </div>
                     </Link>
                   </td>
@@ -151,13 +183,32 @@ export function ClientesTable({ clientes, responsaveis }: ClientesTableProps) {
                       <span className="text-slate-400">—</span>
                     )}
                   </td>
+                  <td className="px-5 py-3.5">
+                    <NpsBadge score={npsMap[cliente.id]} />
+                  </td>
+                  <td className="px-5 py-3.5">
+                    {healthScoreMap[cliente.id] ? (
+                      <HealthScoreBadge data={healthScoreMap[cliente.id]} />
+                    ) : (
+                      <span className="text-xs text-slate-300">—</span>
+                    )}
+                  </td>
                   <td className="px-5 py-3.5 text-right">
-                    <button
-                      onClick={() => openEdit(cliente)}
-                      className="rounded-lg p-1.5 text-slate-400 opacity-0 transition hover:bg-slate-100 hover:text-slate-600 group-hover:opacity-100"
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
-                    </button>
+                    <div className="flex items-center justify-end gap-1 opacity-0 transition group-hover:opacity-100">
+                      <button
+                        onClick={() => openEdit(cliente)}
+                        className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                        title="Editar"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                      <Link
+                        href={`/clientes/${cliente.id}`}
+                        className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50"
+                      >
+                        Ver perfil <ArrowRight className="h-3 w-3" />
+                      </Link>
+                    </div>
                   </td>
                 </tr>
               )

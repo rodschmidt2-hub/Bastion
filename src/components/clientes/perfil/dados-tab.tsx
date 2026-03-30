@@ -1,9 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { Pencil } from 'lucide-react'
+import { Pencil, UserX, UserCheck } from 'lucide-react'
 import { ClienteDrawer } from '@/components/clientes/cliente-drawer'
-import type { Cliente, Profile } from '@/types/database'
+import { ContatosSection } from '@/components/clientes/perfil/contatos-section'
+import { DesativarModal } from '@/components/clientes/perfil/desativar-modal'
+import { HistoricoStatusSection } from '@/components/clientes/perfil/historico-status-section'
+import type { Cliente, ContatoCliente, Profile } from '@/types/database'
 
 const segmentoLabel = { solo: 'Solo', rede: 'Rede', especialidade: 'Especialidade' }
 const porteLabel = { pequeno: 'Pequeno', medio: 'Médio', grande: 'Grande' }
@@ -12,16 +15,37 @@ interface DadosTabProps {
   cliente: Cliente
   responsaveis: Pick<Profile, 'id' | 'nome' | 'email'>[]
   historico: { created_at: string; responsavel_anterior?: { nome: string | null; email: string } | null; responsavel_novo?: { nome: string | null; email: string } | null }[]
+  contatos: ContatoCliente[]
+  eventosStatus?: { id: string; created_at: string; descricao: string; dados: any; usuario?: { nome: string | null; email: string } }[]
 }
 
-export function DadosTab({ cliente, responsaveis, historico }: DadosTabProps) {
+export function DadosTab({ cliente, responsaveis, historico, contatos, eventosStatus = [] }: DadosTabProps) {
   const [editOpen, setEditOpen] = useState(false)
-  const responsavel = responsaveis.find((r) => r.id === cliente.responsavel_interno_id)
+  const [statusModal, setStatusModal] = useState<'desativar' | 'reativar' | null>(null)
+  const responsavel = responsaveis.find((r) => r.id === cliente.responsavel_id)
+  const isInativo = ['inativo', 'suspenso', 'cancelado'].includes(cliente.status)
 
   return (
     <>
       <div className="space-y-6 p-6">
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          {isInativo ? (
+            <button
+              onClick={() => setStatusModal('reativar')}
+              className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-700 hover:bg-emerald-100"
+            >
+              <UserCheck className="h-3.5 w-3.5" />
+              Reativar
+            </button>
+          ) : (
+            <button
+              onClick={() => setStatusModal('desativar')}
+              className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-100"
+            >
+              <UserX className="h-3.5 w-3.5" />
+              Desativar
+            </button>
+          )}
           <button
             onClick={() => setEditOpen(true)}
             className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50"
@@ -34,16 +58,16 @@ export function DadosTab({ cliente, responsaveis, historico }: DadosTabProps) {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <Section title="Clínica">
             <Row label="CNPJ" value={cliente.cnpj} />
-            <Row label="Segmento" value={cliente.segmento ? segmentoLabel[cliente.segmento] : null} />
-            <Row label="Porte" value={cliente.porte ? porteLabel[cliente.porte] : null} />
+            <Row label="Segmento" value={cliente.segmento ? segmentoLabel[cliente.segmento as keyof typeof segmentoLabel] ?? cliente.segmento : null} />
+            <Row label="Porte" value={cliente.porte ? porteLabel[cliente.porte as keyof typeof porteLabel] : null} />
           </Section>
 
           <Section title="Endereço">
-            <Row label="Logradouro" value={cliente.endereco_logradouro} />
+            <Row label="Logradouro" value={cliente.logradouro} />
             <Row label="Cidade / Estado" value={
-              [cliente.endereco_cidade, cliente.endereco_estado].filter(Boolean).join(' / ') || null
+              [cliente.cidade, cliente.uf].filter(Boolean).join(' / ') || null
             } />
-            <Row label="CEP" value={cliente.endereco_cep} />
+            <Row label="CEP" value={cliente.cep} />
           </Section>
 
           <Section title="Responsável financeiro">
@@ -63,6 +87,10 @@ export function DadosTab({ cliente, responsaveis, historico }: DadosTabProps) {
             <Row label="Observações" value={cliente.observacoes} />
           </Section>
         </div>
+
+        <ContatosSection clienteId={cliente.id} contatos={contatos} />
+
+        <HistoricoStatusSection eventos={eventosStatus} />
 
         {historico.length > 0 && (
           <div>
@@ -87,6 +115,14 @@ export function DadosTab({ cliente, responsaveis, historico }: DadosTabProps) {
         cliente={cliente}
         responsaveis={responsaveis}
       />
+
+      {statusModal && (
+        <DesativarModal
+          clienteId={cliente.id}
+          modo={statusModal}
+          onClose={() => setStatusModal(null)}
+        />
+      )}
     </>
   )
 }

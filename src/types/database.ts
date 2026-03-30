@@ -1,132 +1,78 @@
-// ── Auth / Profiles ─────────────────────────────────────────
-export type UserRole = 'admin' | 'gestor' | 'comercial' | 'financeiro' | 'operacional'
+// ─────────────────────────────────────────────────────────────────────────────
+// database.ts — Tipos gerados do Supabase + aliases de conveniência
+// Gerado via: supabase gen types typescript --linked --schema public
+// Atualizar com: npx supabase gen types typescript --linked --schema public > src/types/database.generated.ts
+// ─────────────────────────────────────────────────────────────────────────────
 
-export interface Profile {
-  id: string
-  agencia_id: string
-  nome: string
-  email: string
-  role: UserRole
-  nivel_desconto: number
-  ativo: boolean
-  created_at: string
-  updated_at: string
-}
+// Re-exporta os tipos base gerados automaticamente
+export type { Database, Json, Tables, Enums } from './database.generated'
 
-// ── Clientes ─────────────────────────────────────────────────
-export type ClienteSegmento = 'solo' | 'rede' | 'especialidade'
-export type ClientePorte = 'pequeno' | 'medio' | 'grande'
-export type ClienteStatus = 'ativo' | 'inadimplente' | 'cancelado' | 'pausado'
+import type { Tables, Enums } from './database.generated'
 
-export interface Cliente {
-  id: string
-  nome: string
-  cnpj: string | null
-  segmento: ClienteSegmento | null
-  porte: ClientePorte | null
-  endereco_logradouro: string | null
-  endereco_cidade: string | null
-  endereco_estado: string | null
-  endereco_cep: string | null
-  resp_financeiro_nome: string | null
-  resp_financeiro_email: string | null
-  resp_financeiro_telefone: string | null
-  decisor_nome: string | null
-  decisor_email: string | null
-  decisor_telefone: string | null
-  responsavel_interno_id: string | null
-  status: ClienteStatus
-  observacoes: string | null
-  created_at: string
-  updated_at: string
-  responsavel_interno?: Pick<Profile, 'id' | 'nome' | 'email'> | null
-}
+// ── Auth / Profiles ──────────────────────────────────────────────────────────
+export type UserRole = Enums<'user_role'>
 
-// ── Produtos ─────────────────────────────────────────────────
-export interface ProdutoAgencia {
-  id: string
-  nome: string
-  descricao: string | null
-  valor_base: number | null
-  categoria: string | null
-  ativo: boolean
-  created_at: string
-}
+export type Profile = Tables<'profiles'>
 
-export type ProdutoStatus = 'ativo' | 'pausado' | 'cancelado'
+// ── Agências ─────────────────────────────────────────────────────────────────
+export type Agencia = Tables<'agencias'>
+export type SistemaConfig = Tables<'sistema_config'>
 
-export interface ProdutoContratado {
-  id: string
-  cliente_id: string
-  produto_agencia_id: string | null
-  nome: string
-  valor_mensal: number
-  data_inicio: string
-  data_fim: string | null
-  status: ProdutoStatus
-  observacoes: string | null
-  created_at: string
-  updated_at: string
-}
+// ── Pessoas & Clientes ───────────────────────────────────────────────────────
+export type ClienteSegmento = Enums<'cliente_segmento'>
+export type ClientePorte = Enums<'cliente_porte'>
+export type ClienteStatus = Enums<'cliente_status'>
 
-// ── Contratos ────────────────────────────────────────────────
-export type ContratoStatus = 'ativo' | 'pausado' | 'cancelado' | 'em_renovacao' | 'encerrado'
+export type Cliente = Tables<'clientes'>
+export type Pessoa = Tables<'pessoas'>
+export type ClienteSocio = Tables<'cliente_socios'>
+export type ContatoCliente = Tables<'contatos_cliente'>
+export type NpsRegistro = Tables<'nps_registros'>
+export type HistoricoResponsavel = Tables<'historico_responsaveis'>
+export type EventoCliente = Tables<'eventos_cliente'>
 
-export interface Contrato {
-  id: string
-  cliente_id: string
-  tipo: string
-  data_inicio: string
-  data_fim: string | null
-  valor: number | null
-  status: ContratoStatus
-  documento_url: string | null
-  observacoes: string | null
-  created_at: string
-  updated_at: string
-}
+// ── Catálogo de Produtos ─────────────────────────────────────────────────────
+export type ProdutoAgencia = Tables<'produtos_agencia'>
+export type ProdutoOferta = Tables<'produto_ofertas'>
 
-// ── Pagamentos ───────────────────────────────────────────────
-export type PagamentoForma = 'pix' | 'boleto' | 'cartao' | 'transferencia' | 'outro'
-export type PagamentoStatus = 'confirmado' | 'pendente' | 'estornado'
+// ── Contratos ────────────────────────────────────────────────────────────────
+export type ContratoStatus = Enums<'contrato_status'>
+export type ProdutoStatus = Enums<'produto_status'>
 
-export interface Pagamento {
-  id: string
-  cliente_id: string
-  data: string
-  valor: number
-  forma: PagamentoForma
-  referencia: string | null
-  status: PagamentoStatus
-  observacoes: string | null
-  created_by: string | null
-  created_at: string
-}
+export type Contrato = Tables<'contratos'>
+export type ContratoItem = Tables<'contrato_itens'>
 
-// ── Documentos ───────────────────────────────────────────────
-export type DocumentoTipo = 'contrato' | 'procuracao' | 'autorizacao' | 'nota_fiscal' | 'outro'
+/** View: contrato_itens JOIN contratos JOIN produtos_agencia (com joins de cliente) */
+export type ProdutoContratadoView = Tables<'produtos_contratados'>
 
-export interface Documento {
-  id: string
-  cliente_id: string
-  nome: string
-  tipo: DocumentoTipo
-  storage_path: string
-  tamanho_bytes: number | null
-  created_by: string | null
-  created_at: string
-}
+export type Renovacao = Tables<'renovacoes'>
 
-// ── Histórico de responsáveis ─────────────────────────────────
-export interface HistoricoResponsavel {
-  id: string
-  agencia_id: string
-  cliente_id: string
-  responsavel_anterior_id: string | null
-  responsavel_novo_id: string | null
-  alterado_por_id: string | null
-  created_at: string
-  responsavel_anterior?: Pick<Profile, 'nome' | 'email'> | null
-  responsavel_novo?: Pick<Profile, 'nome' | 'email'> | null
-  alterado_por?: Pick<Profile, 'nome' | 'email'> | null
-}
+/**
+ * @deprecated Use ContratoItem (contrato_itens) ou ProdutoContratadoView
+ */
+export type ProdutoContratado = ContratoItem
+
+// ── Documentos ───────────────────────────────────────────────────────────────
+export type DocumentoTipo = Enums<'documento_tipo'>
+export type Documento = Tables<'documentos_cliente'>
+
+// ── Financeiro ───────────────────────────────────────────────────────────────
+export type PagamentoForma = Enums<'pagamento_forma'>
+export type PagamentoStatus = Enums<'pagamento_status'>
+
+export type Fatura = Tables<'faturas'>
+export type FaturaItem = Tables<'fatura_itens'>
+export type Pagamento = Tables<'pagamentos'>
+export type Acordo = Tables<'acordos'>
+export type AcordoOrigem = Tables<'acordo_origens'>
+export type AcordoParcela = Tables<'acordo_parcelas'>
+export type CreditoCliente = Tables<'creditos_cliente'>
+export type CreditoAplicacao = Tables<'credito_aplicacoes'>
+
+// ── Notificações ─────────────────────────────────────────────────────────────
+export type NotificacaoConfig = Tables<'notificacoes_config'>
+export type NotificacaoLog = Tables<'notificacoes_log'>
+
+// ── Auditoria & Jobs ─────────────────────────────────────────────────────────
+export type AuditLog = Tables<'audit_log'>
+export type JobLog = Tables<'jobs_log'>

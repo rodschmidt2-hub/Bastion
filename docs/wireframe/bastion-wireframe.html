@@ -1,0 +1,2054 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bastion — Wireframe Interativo</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f1f5f9; color: #1e293b; display: flex; height: 100vh; overflow: hidden; }
+
+  /* SIDEBAR */
+  .sidebar { width: 220px; background: #fff; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; flex-shrink: 0; }
+  .sidebar-logo { padding: 20px 16px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; gap: 10px; }
+  .logo-mark { width: 32px; height: 32px; background: #2563eb; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 16px; }
+  .logo-text { font-weight: 700; font-size: 15px; color: #0f172a; }
+  .logo-badge { font-size: 10px; color: #94a3b8; display: block; }
+  nav { padding: 12px 8px; flex: 1; }
+  .nav-section { font-size: 10px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: .8px; padding: 8px 8px 4px; }
+  .nav-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 7px; cursor: pointer; font-size: 13.5px; color: #475569; margin-bottom: 1px; transition: all .15s; }
+  .nav-item:hover { background: #f8fafc; color: #1e293b; }
+  .nav-item.active { background: #eff6ff; color: #2563eb; font-weight: 600; }
+  .nav-icon { width: 16px; text-align: center; }
+  .nav-badge { margin-left: auto; background: #fee2e2; color: #dc2626; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 10px; }
+  .sidebar-footer { padding: 12px; border-top: 1px solid #e2e8f0; }
+  .user-pill { display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 8px; cursor: pointer; }
+  .user-pill:hover { background: #f8fafc; }
+  .avatar { width: 30px; height: 30px; border-radius: 50%; background: #2563eb; color: white; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+  .user-info { flex: 1; min-width: 0; }
+  .user-name { font-size: 12px; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .user-role { font-size: 10px; color: #94a3b8; }
+
+  /* MAIN */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .topbar { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+  .topbar-title { font-size: 15px; font-weight: 600; color: #0f172a; flex: 1; }
+  .search-bar { display: flex; align-items: center; gap: 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 6px 12px; font-size: 13px; color: #94a3b8; cursor: pointer; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all .15s; }
+  .btn-primary { background: #2563eb; color: white; }
+  .btn-primary:hover { background: #1d4ed8; }
+  .btn-secondary { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+  .btn-secondary:hover { background: #e2e8f0; }
+  .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+  .content { flex: 1; overflow-y: auto; padding: 24px; }
+
+  /* SCREENS */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* PAGE HEADER */
+  .page-header { margin-bottom: 20px; }
+  .page-title { font-size: 20px; font-weight: 700; color: #0f172a; }
+  .page-sub { font-size: 13px; color: #94a3b8; margin-top: 2px; }
+  .page-actions { display: flex; gap: 8px; align-items: center; }
+  .page-header-row { display: flex; justify-content: space-between; align-items: flex-start; }
+
+  /* CARDS KPI */
+  .kpi-grid { display: grid; gap: 16px; margin-bottom: 20px; }
+  .kpi-grid-4 { grid-template-columns: repeat(4, 1fr); }
+  .kpi-grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .kpi-grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .kpi-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; }
+  .kpi-card.alert { border-color: #fca5a5; background: #fff5f5; }
+  .kpi-card.warn { border-color: #fcd34d; background: #fffbeb; }
+  .kpi-label { font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: .6px; }
+  .kpi-value { font-size: 26px; font-weight: 700; color: #0f172a; margin: 6px 0 2px; }
+  .kpi-value.green { color: #16a34a; }
+  .kpi-value.red { color: #dc2626; }
+  .kpi-value.amber { color: #d97706; }
+  .kpi-value.blue { color: #2563eb; }
+  .kpi-sub { font-size: 11px; color: #94a3b8; }
+
+  /* TABLE */
+  .table-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
+  .table-header { padding: 14px 20px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; gap: 12px; }
+  .table-header h3 { font-size: 14px; font-weight: 600; color: #0f172a; flex: 1; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { border-bottom: 1px solid #f1f5f9; }
+  th { padding: 10px 16px; text-align: left; font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: .5px; }
+  td { padding: 12px 16px; color: #475569; border-bottom: 1px solid #f8fafc; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #f8fafc; }
+  .td-primary { color: #0f172a; font-weight: 500; cursor: pointer; }
+  .td-primary:hover { color: #2563eb; }
+
+  /* BADGES */
+  .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .badge-green { background: #f0fdf4; color: #16a34a; }
+  .badge-red { background: #fef2f2; color: #dc2626; }
+  .badge-amber { background: #fffbeb; color: #d97706; }
+  .badge-blue { background: #eff6ff; color: #2563eb; }
+  .badge-slate { background: #f8fafc; color: #64748b; }
+  .badge-violet { background: #f5f3ff; color: #7c3aed; }
+
+  /* SEARCH + FILTER BAR */
+  .filter-bar { display: flex; gap: 8px; margin-bottom: 16px; }
+  .input { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; font-size: 13px; color: #475569; flex: 1; }
+  .input::placeholder { color: #cbd5e1; }
+  select.input { cursor: pointer; max-width: 160px; flex: none; }
+
+  /* TABS */
+  .tabs-nav { display: flex; border-bottom: 2px solid #f1f5f9; margin-bottom: 20px; }
+  .tab { padding: 10px 16px; font-size: 13px; font-weight: 500; color: #94a3b8; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all .15s; }
+  .tab:hover { color: #475569; }
+  .tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; }
+
+  /* FORM */
+  .form-grid { display: grid; gap: 14px; }
+  .form-grid-2 { grid-template-columns: 1fr 1fr; }
+  .form-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-label { font-size: 12px; font-weight: 500; color: #374151; }
+  .form-label span { color: #dc2626; }
+  .form-input { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; font-size: 13px; color: #475569; }
+  .form-input::placeholder { color: #cbd5e1; }
+  .form-section { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .7px; margin: 8px 0 4px; padding-top: 8px; border-top: 1px solid #f1f5f9; }
+  .form-section:first-child { border-top: none; padding-top: 0; margin-top: 0; }
+
+  /* DRAWER */
+  .drawer-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.3); z-index: 100; }
+  .drawer-overlay.open { display: flex; justify-content: flex-end; }
+  .drawer { width: 480px; height: 100%; background: white; box-shadow: -4px 0 24px rgba(0,0,0,.1); display: flex; flex-direction: column; overflow: hidden; }
+  .drawer-header { padding: 20px 24px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: flex-start; justify-content: space-between; }
+  .drawer-title { font-size: 17px; font-weight: 700; color: #0f172a; }
+  .drawer-sub { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+  .drawer-body { flex: 1; overflow-y: auto; padding: 20px 24px; }
+  .drawer-footer { padding: 16px 24px; border-top: 1px solid #f1f5f9; display: flex; gap: 8px; justify-content: flex-end; }
+  .close-btn { width: 28px; height: 28px; border-radius: 6px; border: none; background: #f1f5f9; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; color: #64748b; }
+
+  /* MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 200; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: white; border-radius: 14px; width: 440px; box-shadow: 0 20px 60px rgba(0,0,0,.15); overflow: hidden; }
+  .modal-header { padding: 20px 24px 0; }
+  .modal-title { font-size: 16px; font-weight: 700; color: #0f172a; }
+  .modal-sub { font-size: 13px; color: #94a3b8; margin-top: 2px; }
+  .modal-body { padding: 16px 24px; }
+  .modal-footer { padding: 12px 24px 20px; display: flex; gap: 8px; justify-content: flex-end; }
+
+  /* PROFILE PAGE */
+  .profile-header { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; display: flex; align-items: center; gap: 16px; }
+  .profile-avatar { width: 52px; height: 52px; border-radius: 12px; background: #eff6ff; border: 1px solid #bfdbfe; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; color: #2563eb; flex-shrink: 0; }
+  .profile-info { flex: 1; }
+  .profile-name { font-size: 18px; font-weight: 700; color: #0f172a; }
+  .profile-meta { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+  .profile-actions { display: flex; gap: 8px; }
+
+  /* INFO GRID */
+  .info-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; margin-bottom: 16px; }
+  .info-card h4 { font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .6px; margin-bottom: 12px; }
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .info-item label { font-size: 11px; color: #94a3b8; display: block; margin-bottom: 2px; }
+  .info-item span { font-size: 13px; color: #1e293b; font-weight: 500; }
+
+  /* CONTACT CARDS */
+  .contact-card { border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .contact-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  .contact-info { flex: 1; }
+  .contact-name { font-size: 13px; font-weight: 600; color: #0f172a; }
+  .contact-detail { font-size: 12px; color: #94a3b8; }
+  .contact-actions { display: flex; gap: 4px; }
+  .icon-btn { width: 28px; height: 28px; border: 1px solid #e2e8f0; border-radius: 6px; background: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #64748b; }
+  .icon-btn:hover { background: #f8fafc; }
+
+  /* PRODUTO CARDS */
+  .produto-row { border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .produto-info { flex: 1; }
+  .produto-name { font-size: 13px; font-weight: 600; color: #0f172a; }
+  .produto-meta { font-size: 11px; color: #94a3b8; margin-top: 1px; }
+  .produto-valor { font-size: 14px; font-weight: 700; color: #0f172a; }
+  .vencimento-alert { font-size: 11px; font-weight: 600; color: #d97706; background: #fffbeb; padding: 2px 6px; border-radius: 4px; }
+  .vencimento-ok { font-size: 11px; color: #94a3b8; }
+
+  /* COBRANÇA ROWS */
+  .cobranca-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f8fafc; }
+  .cobranca-row:last-child { border-bottom: none; }
+  .cobranca-ref { font-size: 13px; font-weight: 600; color: #0f172a; flex: 1; }
+  .cobranca-venc { font-size: 11px; color: #94a3b8; }
+  .cobranca-valor { font-size: 13px; font-weight: 700; color: #0f172a; }
+
+  /* CHART PLACEHOLDER */
+  .chart-placeholder { background: #f8fafc; border: 2px dashed #e2e8f0; border-radius: 10px; height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: #94a3b8; font-size: 13px; }
+  .chart-bars { display: flex; align-items: flex-end; gap: 6px; height: 80px; }
+  .chart-bar { width: 28px; background: #bfdbfe; border-radius: 4px 4px 0 0; }
+
+  /* EMPTY STATE */
+  .empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 20px; color: #94a3b8; text-align: center; }
+  .empty-icon { width: 48px; height: 48px; background: #f8fafc; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 10px; }
+  .empty p { font-size: 13px; }
+
+  /* ANNOTATIONS */
+  .annotation { display: inline-flex; align-items: center; gap: 4px; background: #fef9c3; border: 1px solid #fde047; border-radius: 6px; padding: 3px 8px; font-size: 11px; color: #854d0e; margin-left: 8px; }
+
+  /* DIVIDER */
+  .divider { height: 1px; background: #f1f5f9; margin: 16px 0; }
+
+  /* TOOLTIP */
+  .tooltip { position: relative; }
+  .tooltip-text { display: none; position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; font-size: 11px; padding: 4px 8px; border-radius: 6px; white-space: nowrap; z-index: 999; }
+  .tooltip:hover .tooltip-text { display: block; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 3px; }
+
+  /* RESPONSIVE GRID */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+  /* STATUS DOT */
+  .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+  .dot-green { background: #22c55e; }
+  .dot-red { background: #ef4444; }
+  .dot-amber { background: #f59e0b; }
+  .dot-slate { background: #94a3b8; }
+
+  /* RENOVATION HISTORY */
+  .timeline-item { display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px solid #f8fafc; }
+  .timeline-dot { width: 8px; height: 8px; border-radius: 50%; background: #2563eb; margin-top: 5px; flex-shrink: 0; }
+  .timeline-content { flex: 1; }
+  .timeline-title { font-size: 13px; font-weight: 500; color: #1e293b; }
+  .timeline-meta { font-size: 11px; color: #94a3b8; }
+
+  /* HELP STRIP */
+  .help-strip { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 10px; padding: 10px 14px; font-size: 12px; color: #0369a1; margin-bottom: 16px; display: flex; align-items: center; gap: 6px; }
+
+  /* ===== FINANCIAL TAB ENHANCED (FR-55 a FR-62) ===== */
+  .top-strip { display: grid; grid-template-columns: 1fr 1fr 1fr 1.4fr; gap: 14px; margin-bottom: 20px; }
+  .kpi-card.highlight { border-color: #bfdbfe; background: #eff6ff; }
+  .notas-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+  .notas-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .7px; }
+  .notas-input { flex: 1; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 8px 10px; font-size: 12px; color: #475569; background: #f8fafc; min-height: 52px; line-height: 1.5; }
+  .notas-hint { font-size: 10px; color: #cbd5e1; }
+  .fin-main-grid { display: grid; grid-template-columns: 1fr 340px; gap: 16px; align-items: start; }
+  .section-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; margin-bottom: 16px; }
+  .section-header { padding: 14px 18px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .section-title { font-size: 13px; font-weight: 700; color: #0f172a; flex: 1; }
+  .section-body { padding: 0 18px; }
+  .fin-timeline { padding: 6px 0; }
+  .tl-item { display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px solid #f8fafc; }
+  .tl-item:last-child { border-bottom: none; }
+  .tl-dot-col { display: flex; flex-direction: column; align-items: center; width: 20px; flex-shrink: 0; padding-top: 3px; }
+  .tl-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .tl-dot.green { background: #22c55e; }
+  .tl-dot.red { background: #ef4444; }
+  .tl-dot.amber { background: #f59e0b; }
+  .tl-dot.blue { background: #3b82f6; }
+  .tl-dot.slate { background: #94a3b8; }
+  .tl-line { width: 2px; flex: 1; background: #f1f5f9; margin-top: 4px; }
+  .tl-content { flex: 1; }
+  .tl-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+  .tl-event { font-size: 13px; font-weight: 600; color: #1e293b; }
+  .tl-amount { font-size: 13px; font-weight: 700; color: #0f172a; white-space: nowrap; }
+  .tl-amount.neg { color: #dc2626; }
+  .tl-meta { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+  .tl-badge { display: inline-flex; align-items: center; padding: 1px 7px; border-radius: 20px; font-size: 10px; font-weight: 700; margin-left: 6px; vertical-align: middle; }
+  .tl-badge.paga { background: #f0fdf4; color: #16a34a; }
+  .tl-badge.atraso { background: #fef2f2; color: #dc2626; }
+  .tl-badge.pendente { background: #fffbeb; color: #d97706; }
+  .tl-badge.renovacao { background: #eff6ff; color: #2563eb; }
+  .tl-badge.reajuste { background: #f5f3ff; color: #7c3aed; }
+  .sidebar-right { display: flex; flex-direction: column; gap: 14px; }
+  .mrr-chart-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 18px; }
+  .mrr-chart-header { display: flex; align-items: center; margin-bottom: 14px; }
+  .mrr-chart-title { font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .7px; flex: 1; }
+  .mrr-chart-value { font-size: 18px; font-weight: 800; color: #2563eb; }
+  .mrr-bars { display: flex; align-items: flex-end; gap: 5px; height: 72px; margin-bottom: 6px; }
+  .mrr-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .mrr-bar { width: 100%; border-radius: 4px 4px 0 0; }
+  .mrr-bar.current { background: #2563eb; }
+  .mrr-bar.past { background: #bfdbfe; }
+  .mrr-month { font-size: 9px; color: #94a3b8; }
+  .mrr-amount { font-size: 9px; color: #475569; font-weight: 600; }
+  .mrr-trend { display: flex; align-items: center; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid #f1f5f9; font-size: 11px; }
+  .trend-up { color: #16a34a; font-weight: 700; }
+  .trend-desc { color: #94a3b8; }
+  .pontualidade-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 18px; }
+  .pont-header { display: flex; align-items: center; margin-bottom: 12px; }
+  .pont-title { font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .7px; flex: 1; }
+  .pont-score { font-size: 20px; font-weight: 800; }
+  .pont-grid { display: flex; gap: 3px; flex-wrap: wrap; }
+  .pont-dot { width: 18px; height: 18px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 700; color: white; }
+  .pont-dot.ok { background: #22c55e; }
+  .pont-dot.late { background: #ef4444; }
+  .pont-dot.future { background: #f1f5f9; }
+  .pont-legend { display: flex; gap: 12px; margin-top: 8px; font-size: 10px; color: #94a3b8; }
+  .pont-leg-item { display: flex; align-items: center; gap: 4px; }
+  .pont-leg-dot { width: 8px; height: 8px; border-radius: 2px; }
+  .resumo-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 18px; }
+  .resumo-title { font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .7px; margin-bottom: 12px; }
+  .resumo-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid #f8fafc; font-size: 13px; }
+  .resumo-row:last-child { border-bottom: none; }
+  .resumo-label { color: #64748b; }
+  .resumo-value { font-weight: 700; color: #0f172a; }
+  .resumo-diff { font-size: 11px; color: #16a34a; font-weight: 600; margin-left: 4px; }
+  .resumo-diff.neg { color: #dc2626; }
+  .filter-tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+  .filter-tab { padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; border: 1px solid #e2e8f0; background: white; color: #64748b; transition: all .15s; }
+  .filter-tab:hover { background: #f8fafc; }
+  .filter-tab.active { background: #0f172a; color: white; border-color: #0f172a; }
+  .ann { display: inline-flex; align-items: center; gap: 3px; background: #fef9c3; border: 1px solid #fde047; border-radius: 5px; padding: 2px 6px; font-size: 10px; color: #854d0e; font-weight: 600; vertical-align: middle; margin-left: 6px; }
+  .btn-ghost { background: transparent; color: #94a3b8; border: 1px solid #e2e8f0; }
+  .btn-ghost:hover { background: #f8fafc; color: #475569; }
+  /* NPS score buttons */
+  .nps-btn { width:42px;height:42px;border-radius:10px;border:2px solid;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;cursor:pointer;transition:all .12s ease;background:none; }
+  .nps-btn:hover { transform: scale(1.08); box-shadow: 0 2px 8px rgba(0,0,0,.12); }
+  .nps-red   { background:#fef2f2; border-color:#fecaca; color:#dc2626; }
+  .nps-amber { background:#fffbeb; border-color:#fcd34d; color:#d97706; }
+  .nps-green { background:#f0fdf4; border-color:#86efac; color:#16a34a; }
+  .nps-btn.selected.nps-red   { background:#dc2626; border-color:#b91c1c; color:#fff; transform:scale(1.12); box-shadow:0 3px 10px rgba(220,38,38,.35); }
+  .nps-btn.selected.nps-amber { background:#d97706; border-color:#b45309; color:#fff; transform:scale(1.12); box-shadow:0 3px 10px rgba(217,119,6,.35); }
+  .nps-btn.selected.nps-green { background:#16a34a; border-color:#15803d; color:#fff; transform:scale(1.12); box-shadow:0 3px 10px rgba(22,163,74,.35); }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">B</div>
+    <div>
+      <div class="logo-text">Bastion</div>
+      <span class="logo-badge">Agência</span>
+    </div>
+  </div>
+  <nav>
+    <div class="nav-section">Principal</div>
+    <div class="nav-item active" onclick="show('dashboard')">
+      <span class="nav-icon">◼</span> Dashboard
+    </div>
+    <div class="nav-item" onclick="show('clientes')">
+      <span class="nav-icon">◉</span> Clientes
+    </div>
+    <div class="nav-section">Operação</div>
+    <div class="nav-item" onclick="show('produtos-catalogo')">
+      <span class="nav-icon">⊞</span> Catálogo de Produtos
+      <span class="annotation" style="font-size:9px;padding:1px 4px;">NOVO</span>
+    </div>
+    <div class="nav-item" onclick="show('contratos')">
+      <span class="nav-icon">◫</span> Contratos
+    </div>
+    <div class="nav-item" onclick="show('financeiro')">
+      <span class="nav-icon">◈</span> Financeiro
+    </div>
+    <div class="nav-item" onclick="show('documentos')">
+      <span class="nav-icon">◧</span> Documentos
+    </div>
+    <div class="nav-section">Administração</div>
+    <div class="nav-item" onclick="show('usuarios')">
+      <span class="nav-icon">◎</span> Usuários
+      <span class="badge badge-violet" style="font-size:9px;padding:1px 6px;">Admin</span>
+    </div>
+    <div class="nav-item" onclick="show('configuracoes')">
+      <span class="nav-icon">◌</span> Configurações
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-pill">
+      <div class="avatar">RO</div>
+      <div class="user-info">
+        <div class="user-name">Rodrigo Schmidt</div>
+        <div class="user-role">Admin</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-title" id="topbar-title">Dashboard</div>
+    <div class="search-bar" style="width:220px;">
+      <span>🔍</span> Buscar... <span style="margin-left:auto;font-size:10px;background:#f1f5f9;padding:1px 5px;border-radius:4px;">⌘K</span>
+    </div>
+    <div class="avatar" style="width:32px;height:32px;font-size:12px;">RO</div>
+  </div>
+
+  <div class="content">
+
+    <!-- ========== DASHBOARD ========== -->
+    <div class="screen active" id="screen-dashboard">
+      <div class="page-header-row page-header">
+        <div>
+          <div class="page-title">Dashboard</div>
+          <div class="page-sub">Visão geral da operação — hoje, 27/03/2026</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary btn-sm">↓ Exportar</button>
+          <select class="input" style="max-width:130px;padding:6px 10px;font-size:12px;">
+            <option>Últimos 30 dias</option>
+            <option>Este mês</option>
+            <option>Este ano</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- BLOCO 1: RECEITA -->
+      <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">Receita</div>
+      <div class="kpi-grid kpi-grid-4" style="margin-bottom:6px;">
+        <div class="kpi-card highlight">
+          <div class="kpi-label">MRR Total</div>
+          <div class="kpi-value blue">R$ 42.800</div>
+          <div class="kpi-sub">↑ +12% vs mês anterior</div>
+        </div>
+        <div class="kpi-card highlight">
+          <div class="kpi-label">ARR <span class="ann">FR-37b</span></div>
+          <div class="kpi-value blue">R$ 513.600</div>
+          <div class="kpi-sub">MRR × 12</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">LTV Acumulado</div>
+          <div class="kpi-value">R$ 318.200</div>
+          <div class="kpi-sub">Histórico confirmado</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Ticket Médio</div>
+          <div class="kpi-value">R$ 1.783</div>
+          <div class="kpi-sub">MRR ÷ 24 clientes ativos</div>
+        </div>
+      </div>
+      <div class="kpi-grid kpi-grid-4" style="margin-bottom:20px;">
+        <div class="kpi-card">
+          <div class="kpi-label">Recorrente (MRR)</div>
+          <div class="kpi-value green">R$ 38.400</div>
+          <div class="kpi-sub">90% da receita — <span class="ann">FR-43c</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Pontual (one-time)</div>
+          <div class="kpi-value">R$ 4.400</div>
+          <div class="kpi-sub">10% da receita</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Margem de Contrib. Total</div>
+          <div class="kpi-value green">R$ 24.100</div>
+          <div class="kpi-sub">56% · receita − custo base <span class="ann">FR-43d</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Clientes Ativos</div>
+          <div class="kpi-value">24</div>
+          <div class="kpi-sub">+3 novos este mês</div>
+        </div>
+      </div>
+
+      <!-- BLOCO 2: RETENÇÃO -->
+      <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">Retenção e Crescimento</div>
+      <div class="kpi-grid kpi-grid-4" style="margin-bottom:20px;">
+        <div class="kpi-card highlight">
+          <div class="kpi-label">NRR <span class="ann">FR-41e</span></div>
+          <div class="kpi-value green">108%</div>
+          <div class="kpi-sub" style="color:#16a34a;font-weight:600;">▲ Base crescendo sem novos clientes</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Expansion MRR <span class="ann">FR-41c</span></div>
+          <div class="kpi-value green">+ R$ 3.400</div>
+          <div class="kpi-sub">Upsell + reajustes em clientes ativos</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Contraction MRR <span class="ann">FR-41d</span></div>
+          <div class="kpi-value amber">- R$ 1.800</div>
+          <div class="kpi-sub">2 clientes reduziram serviços</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Taxa de Renovação <span class="ann">FR-42b</span></div>
+          <div class="kpi-value green">86%</div>
+          <div class="kpi-sub">6 de 7 contratos renovados</div>
+        </div>
+      </div>
+
+      <!-- BLOCO 3: AQUISIÇÃO E SAÚDE -->
+      <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">Aquisição e Saúde</div>
+      <div class="kpi-grid kpi-grid-4" style="margin-bottom:20px;">
+        <div class="kpi-card">
+          <div class="kpi-label">LTV / CAC <span class="ann">FR-43h</span></div>
+          <div style="display:flex;align-items:center;gap:8px;margin:6px 0 2px;">
+            <div class="kpi-value green" style="margin:0;">4.7×</div>
+            <div style="width:10px;height:10px;border-radius:50%;background:#22c55e;flex-shrink:0;" title="Saudável (> 3×)"></div>
+          </div>
+          <div class="kpi-sub">Benchmark mínimo: ≥ 3×</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Payback Period <span class="ann">FR-43i</span></div>
+          <div class="kpi-value amber">9 meses</div>
+          <div class="kpi-sub">CAC médio ÷ ticket médio</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">CAC Médio <span class="ann">FR-43g</span></div>
+          <div class="kpi-value">R$ 16.050</div>
+          <div class="kpi-sub">Média dos clientes com CAC registrado</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">NPS Médio <span class="ann">FR-67</span></div>
+          <div class="kpi-value amber">7.2</div>
+          <div class="kpi-sub">18 clientes responderam · <span style="color:#dc2626;font-weight:600;">2 com NPS ≤ 6 ⚠️</span></div>
+        </div>
+      </div>
+
+      <!-- BLOCO 4: ALERTAS + CHURN -->
+      <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">Alertas</div>
+      <div class="kpi-grid kpi-grid-4" style="margin-bottom:20px;">
+        <div class="kpi-card alert">
+          <div class="kpi-label">Inadimplentes</div>
+          <div class="kpi-value red">3</div>
+          <div class="kpi-sub">R$ 6.400 em aberto</div>
+        </div>
+        <div class="kpi-card warn">
+          <div class="kpi-label">Renovações em 30d</div>
+          <div class="kpi-value amber">7</div>
+          <div class="kpi-sub">2 críticas (≤ 7 dias)</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Churn MRR (30d) <span class="ann">FR-41b</span></div>
+          <div class="kpi-value red">- R$ 2.200</div>
+          <div class="kpi-sub">1 cliente cancelado</div>
+        </div>
+        <div class="kpi-card warn">
+          <div class="kpi-label">NPS Baixo (≤ 6) <span class="ann">FR-68</span></div>
+          <div class="kpi-value amber">2</div>
+          <div class="kpi-sub">Risco de churn — contato urgente</div>
+        </div>
+      </div>
+
+      <!-- CHARTS + SEGMENTAÇÃO -->
+      <div class="grid-2" style="margin-bottom:16px;">
+        <div class="info-card">
+          <h4>MRR Histórico — últimos 6 meses</h4>
+          <div class="chart-bars" style="align-items:flex-end;padding:0 8px;">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+              <div class="chart-bar" style="height:60px;width:100%;"></div>
+              <span style="font-size:10px;color:#94a3b8;">Out</span>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+              <div class="chart-bar" style="height:72px;width:100%;"></div>
+              <span style="font-size:10px;color:#94a3b8;">Nov</span>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+              <div class="chart-bar" style="height:80px;width:100%;"></div>
+              <span style="font-size:10px;color:#94a3b8;">Dez</span>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+              <div class="chart-bar" style="height:88px;width:100%;"></div>
+              <span style="font-size:10px;color:#94a3b8;">Jan</span>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+              <div class="chart-bar" style="height:96px;width:100%;"></div>
+              <span style="font-size:10px;color:#94a3b8;">Fev</span>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+              <div class="chart-bar" style="height:110px;width:100%;background:#2563eb;"></div>
+              <span style="font-size:10px;color:#2563eb;font-weight:600;">Mar</span>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:11px;color:#94a3b8;">
+            <span>R$ 31k</span><span>→</span><span>R$ 42.8k · +38%</span>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <h4>MRR por Categoria <span class="ann">FR-43</span></h4>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:10px;height:10px;border-radius:2px;background:#2563eb;flex-shrink:0;"></div>
+              <span style="flex:1;font-size:13px;">Marketing Digital</span>
+              <div style="flex:2;background:#f1f5f9;border-radius:4px;height:8px;">
+                <div style="width:62%;background:#2563eb;height:8px;border-radius:4px;"></div>
+              </div>
+              <span style="font-size:12px;font-weight:600;color:#0f172a;min-width:60px;text-align:right;">R$ 26.5k</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:10px;height:10px;border-radius:2px;background:#7c3aed;flex-shrink:0;"></div>
+              <span style="flex:1;font-size:13px;">Vendas</span>
+              <div style="flex:2;background:#f1f5f9;border-radius:4px;height:8px;">
+                <div style="width:28%;background:#7c3aed;height:8px;border-radius:4px;"></div>
+              </div>
+              <span style="font-size:12px;font-weight:600;color:#0f172a;min-width:60px;text-align:right;">R$ 12k</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:10px;height:10px;border-radius:2px;background:#0891b2;flex-shrink:0;"></div>
+              <span style="flex:1;font-size:13px;">Marketing Local</span>
+              <div style="flex:2;background:#f1f5f9;border-radius:4px;height:8px;">
+                <div style="width:10%;background:#0891b2;height:8px;border-radius:4px;"></div>
+              </div>
+              <span style="font-size:12px;font-weight:600;color:#0f172a;min-width:60px;text-align:right;">R$ 4.3k</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:16px;">
+        <div class="info-card">
+          <h4>Receita por Segmento <span class="ann">FR-43e</span></h4>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="flex:1;font-size:13px;">Solo</span>
+              <div style="flex:2;background:#f1f5f9;border-radius:4px;height:8px;">
+                <div style="width:55%;background:#2563eb;height:8px;border-radius:4px;"></div>
+              </div>
+              <span style="font-size:12px;font-weight:600;color:#0f172a;min-width:60px;text-align:right;">R$ 23.5k</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="flex:1;font-size:13px;">Rede</span>
+              <div style="flex:2;background:#f1f5f9;border-radius:4px;height:8px;">
+                <div style="width:30%;background:#7c3aed;height:8px;border-radius:4px;"></div>
+              </div>
+              <span style="font-size:12px;font-weight:600;color:#0f172a;min-width:60px;text-align:right;">R$ 12.9k</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="flex:1;font-size:13px;">Especialidade</span>
+              <div style="flex:2;background:#f1f5f9;border-radius:4px;height:8px;">
+                <div style="width:15%;background:#0891b2;height:8px;border-radius:4px;"></div>
+              </div>
+              <span style="font-size:12px;font-weight:600;color:#0f172a;min-width:60px;text-align:right;">R$ 6.4k</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <h4>Concentração de Receita — Top 5 <span class="ann">FR-43b</span></h4>
+          <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px;">
+            <div style="display:flex;align-items:center;gap:10px;font-size:12px;">
+              <span style="flex:1;color:#0f172a;font-weight:500;">SmilePro Odonto</span>
+              <div style="flex:2;background:#f1f5f9;border-radius:4px;height:8px;">
+                <div style="width:22%;background:#ef4444;height:8px;border-radius:4px;"></div>
+              </div>
+              <span style="font-weight:700;min-width:36px;text-align:right;">22%</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;font-size:12px;">
+              <span style="flex:1;color:#0f172a;font-weight:500;">OdontoPrime</span>
+              <div style="flex:2;background:#f1f5f9;border-radius:4px;height:8px;">
+                <div style="width:16%;background:#f59e0b;height:8px;border-radius:4px;"></div>
+              </div>
+              <span style="font-weight:700;min-width:36px;text-align:right;">16%</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;font-size:12px;">
+              <span style="flex:1;color:#64748b;">Clínica Sorrisos</span>
+              <div style="flex:2;background:#f1f5f9;border-radius:4px;height:8px;">
+                <div style="width:10%;background:#94a3b8;height:8px;border-radius:4px;"></div>
+              </div>
+              <span style="font-weight:700;min-width:36px;text-align:right;color:#64748b;">10%</span>
+            </div>
+            <div style="margin-top:4px;padding-top:6px;border-top:1px solid #f1f5f9;font-size:11px;color:#94a3b8;">
+              ⚠️ SmilePro concentra 22% do MRR — risco de dependência
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="table-card">
+          <div class="table-header">
+            <h3>⚠️ Inadimplentes</h3>
+            <button class="btn btn-secondary btn-sm" onclick="show('financeiro')">Ver todos →</button>
+          </div>
+          <table>
+            <thead><tr><th>Cliente</th><th>Em aberto</th><th>Atraso</th></tr></thead>
+            <tbody>
+              <tr><td class="td-primary" onclick="show('perfil-cliente')">Clínica Sorrisos</td><td>R$ 4.300</td><td><span class="badge badge-red">12 dias</span></td></tr>
+              <tr><td class="td-primary">OdontoPrime</td><td>R$ 2.200</td><td><span class="badge badge-red">8 dias</span></td></tr>
+              <tr><td class="td-primary">DentalFlex</td><td>R$ 1.900</td><td><span class="badge badge-amber">6 dias</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-card">
+          <div class="table-header">
+            <h3>😟 NPS Baixo — Ação Urgente <span class="ann">FR-68</span></h3>
+          </div>
+          <table>
+            <thead><tr><th>Cliente</th><th>NPS</th><th>Última nota</th><th>Responsável</th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="td-primary" onclick="show('perfil-cliente')">Clínica Sorrisos</td>
+                <td><span class="badge badge-red">5</span></td>
+                <td style="font-size:11px;color:#94a3b8;">15/03/2026</td>
+                <td style="font-size:12px;">Rodrigo</td>
+              </tr>
+              <tr>
+                <td class="td-primary">DentalFlex</td>
+                <td><span class="badge badge-amber">6</span></td>
+                <td style="font-size:11px;color:#94a3b8;">10/03/2026</td>
+                <td style="font-size:12px;">Ana Lima</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== CLIENTES LISTA ========== -->
+    <div class="screen" id="screen-clientes">
+      <div class="page-header-row page-header">
+        <div>
+          <div class="page-title">Clientes</div>
+          <div class="page-sub">24 clientes cadastrados</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary" onclick="openDrawer('drawer-cliente')">+ Novo Cliente</button>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <input class="input" placeholder="🔍  Buscar por nome, CNPJ, cidade..." />
+        <select class="input"><option>Todos os status</option><option>Ativo</option><option>Inativo</option><option>Inadimplente</option><option>Cancelado</option></select>
+        <select class="input"><option>Todos os segmentos</option><option>Solo</option><option>Rede</option><option>Especialidade</option></select>
+        <select class="input"><option>Todos os responsáveis</option><option>Rodrigo Schmidt</option><option>Ana Lima</option></select>
+      </div>
+
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Contato Principal</th>
+              <th>Responsável</th>
+              <th>MRR</th>
+              <th>Status</th>
+              <th>Desde</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><div class="td-primary" onclick="show('perfil-cliente')">Clínica Sorrisos</div><div style="font-size:11px;color:#94a3b8;">SP • Solo • Pequeno</div></td>
+              <td><div style="font-size:13px;">Dr. João Alves</div><div style="font-size:11px;color:#94a3b8;">Decisor • (11) 99999-0001</div></td>
+              <td><div style="display:flex;align-items:center;gap:6px;"><div class="avatar" style="width:22px;height:22px;font-size:9px;">RO</div><span style="font-size:12px;">Rodrigo</span></div></td>
+              <td style="font-weight:600;">R$ 4.300</td>
+              <td><span class="badge badge-red"><span class="dot dot-red"></span>Inadimplente</span></td>
+              <td style="font-size:12px;color:#94a3b8;">Jan/2025</td>
+              <td><button class="icon-btn">⋯</button></td>
+            </tr>
+            <tr>
+              <td><div class="td-primary" onclick="show('perfil-cliente')">OdontoPrime</div><div style="font-size:11px;color:#94a3b8;">RJ • Rede • Médio</div></td>
+              <td><div style="font-size:13px;">Dra. Maria Silva</div><div style="font-size:11px;color:#94a3b8;">Financeiro • (21) 98888-0002</div></td>
+              <td><div style="display:flex;align-items:center;gap:6px;"><div class="avatar" style="width:22px;height:22px;font-size:9px;background:#7c3aed;">AL</div><span style="font-size:12px;">Ana Lima</span></div></td>
+              <td style="font-weight:600;">R$ 6.800</td>
+              <td><span class="badge badge-green"><span class="dot dot-green"></span>Ativo</span></td>
+              <td style="font-size:12px;color:#94a3b8;">Mar/2024</td>
+              <td><button class="icon-btn">⋯</button></td>
+            </tr>
+            <tr>
+              <td><div class="td-primary">SmilePro Odonto</div><div style="font-size:11px;color:#94a3b8;">MG • Especialidade • Grande</div></td>
+              <td><div style="font-size:13px;">Pedro Costa</div><div style="font-size:11px;color:#94a3b8;">Decisor • (31) 97777-0003</div></td>
+              <td><div style="display:flex;align-items:center;gap:6px;"><div class="avatar" style="width:22px;height:22px;font-size:9px;">RO</div><span style="font-size:12px;">Rodrigo</span></div></td>
+              <td style="font-weight:600;">R$ 9.200</td>
+              <td><span class="badge badge-green"><span class="dot dot-green"></span>Ativo</span></td>
+              <td style="font-size:12px;color:#94a3b8;">Jun/2024</td>
+              <td><button class="icon-btn">⋯</button></td>
+            </tr>
+            <tr>
+              <td><div class="td-primary">DentalFlex</div><div style="font-size:11px;color:#94a3b8;">PR • Solo • Pequeno</div></td>
+              <td><div style="font-size:13px;">—</div></td>
+              <td><div style="display:flex;align-items:center;gap:6px;"><div class="avatar" style="width:22px;height:22px;font-size:9px;background:#7c3aed;">AL</div><span style="font-size:12px;">Ana Lima</span></div></td>
+              <td style="font-weight:600;">R$ 1.800</td>
+              <td><span class="badge badge-amber"><span class="dot dot-amber"></span>Pausado</span></td>
+              <td style="font-size:12px;color:#94a3b8;">Set/2025</td>
+              <td><button class="icon-btn">⋯</button></td>
+            </tr>
+            <tr style="opacity:.7;">
+              <td><div class="td-primary" style="color:#64748b;">BrightSmile Clinic</div><div style="font-size:11px;color:#94a3b8;">RS • Solo • Pequeno</div></td>
+              <td><div style="font-size:13px;">Dra. Patrícia Luz</div><div style="font-size:11px;color:#94a3b8;">Decisor • (51) 96666-0004</div></td>
+              <td><div style="display:flex;align-items:center;gap:6px;"><div class="avatar" style="width:22px;height:22px;font-size:9px;">RO</div><span style="font-size:12px;">Rodrigo</span></div></td>
+              <td style="font-weight:600;color:#94a3b8;">R$ 2.200</td>
+              <td><span class="badge badge-slate"><span class="dot dot-slate"></span>Inativo</span></td>
+              <td style="font-size:12px;color:#94a3b8;">Fev/2025</td>
+              <td><button class="icon-btn">⋯</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="text-align:center;font-size:12px;color:#94a3b8;padding:8px;">Mostrando 5 de 24 clientes</div>
+    </div>
+
+    <!-- ========== PERFIL CLIENTE ========== -->
+    <div class="screen" id="screen-perfil-cliente">
+      <div class="page-header-row page-header" style="margin-bottom:12px;">
+        <div>
+          <button class="btn btn-secondary btn-sm" onclick="show('clientes')" style="margin-bottom:8px;">← Voltar</button>
+          <div class="page-title">Clínica Sorrisos</div>
+          <div class="page-sub">CNPJ 12.345.678/0001-99 • São Paulo, SP</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary btn-sm">Editar</button>
+          <button class="btn btn-danger btn-sm" onclick="openModal('modal-desativar-cliente')" title="Desativar acesso a serviços">⊘ Desativar</button>
+          <button class="btn btn-secondary btn-sm">⋯</button>
+        </div>
+      </div>
+
+      <div class="profile-header">
+        <div class="profile-avatar">CS</div>
+        <div class="profile-info">
+          <div class="profile-name">Clínica Sorrisos <span class="badge badge-red" style="font-size:11px;vertical-align:middle;margin-left:4px;">Inadimplente</span></div>
+          <div class="profile-meta">Solo • Pequeno porte • Responsável: Rodrigo Schmidt • Cliente desde Jan/2025</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="kpi-value blue" style="font-size:20px;">R$ 4.300</div>
+          <div class="kpi-sub">MRR atual</div>
+        </div>
+      </div>
+
+      <div class="tabs-nav" id="perfil-tabs">
+        <div class="tab active" onclick="switchTab(this,'tab-dados')">Dados</div>
+        <div class="tab" onclick="switchTab(this,'tab-produtos')">Produtos <span class="badge badge-blue" style="margin-left:4px;font-size:10px;">3</span></div>
+        <div class="tab" onclick="switchTab(this,'tab-contratos')">Contratos <span class="badge badge-blue" style="margin-left:4px;font-size:10px;">2</span></div>
+        <div class="tab" onclick="switchTab(this,'tab-financeiro')">Financeiro</div>
+        <div class="tab" onclick="switchTab(this,'tab-nps')">NPS <span class="badge badge-red" style="margin-left:4px;font-size:10px;">5</span></div>
+        <div class="tab" onclick="switchTab(this,'tab-documentos')">Documentos <span class="badge badge-blue" style="margin-left:4px;font-size:10px;">2</span></div>
+      </div>
+
+      <!-- TAB: DADOS -->
+      <div id="tab-dados" class="tab-content">
+        <div class="grid-2">
+          <div>
+            <div class="info-card">
+              <h4>Dados da Clínica</h4>
+              <div class="info-grid">
+                <div class="info-item"><label>CNPJ</label><span>12.345.678/0001-99</span></div>
+                <div class="info-item"><label>Segmento</label><span>Solo</span></div>
+                <div class="info-item"><label>Porte</label><span>Pequeno</span></div>
+                <div class="info-item"><label>Status</label><span><span class="badge badge-red">Inadimplente</span></span></div>
+                <div class="info-item"><label>Cidade / Estado</label><span>São Paulo, SP</span></div>
+                <div class="info-item"><label>CEP</label><span>01310-100</span></div>
+              </div>
+              <div class="divider"></div>
+              <div class="info-item" style="margin-bottom:6px;"><label>Logradouro</label><span>Av. Paulista, 1000, Bela Vista</span></div>
+              <div class="info-item"><label>Observações</label><span style="color:#94a3b8;font-style:italic;">—</span></div>
+            </div>
+
+            <!-- CONTATOS MÚLTIPLOS -->
+            <div class="info-card">
+              <div style="display:flex;align-items:center;margin-bottom:12px;">
+                <h4 style="flex:1;">Contatos <span class="annotation">NOVO — FR-02</span></h4>
+                <button class="btn btn-secondary btn-sm" onclick="openDrawer('drawer-contato')">+ Adicionar</button>
+              </div>
+              <div class="contact-card">
+                <div class="contact-icon" style="background:#eff6ff;color:#2563eb;">👤</div>
+                <div class="contact-info">
+                  <div class="contact-name">Dr. João Alves <span class="badge badge-blue" style="margin-left:4px;font-size:10px;">★ Principal</span></div>
+                  <div class="contact-detail">Decisor • joao@clinicasorrisos.com.br • (11) 99999-0001</div>
+                </div>
+                <div class="contact-actions">
+                  <button class="icon-btn">✏️</button>
+                  <button class="icon-btn">🗑</button>
+                </div>
+              </div>
+              <div class="contact-card">
+                <div class="contact-icon" style="background:#f0fdf4;color:#16a34a;">💰</div>
+                <div class="contact-info">
+                  <div class="contact-name">Carla Mendes</div>
+                  <div class="contact-detail">Financeiro • carla@clinicasorrisos.com.br • (11) 98888-0002</div>
+                </div>
+                <div class="contact-actions">
+                  <button class="icon-btn">✏️</button>
+                  <button class="icon-btn">🗑</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="info-card">
+              <div style="display:flex;align-items:center;margin-bottom:12px;">
+                <h4 style="flex:1;">Responsável Interno</h4>
+                <button class="btn btn-secondary btn-sm">Trocar</button>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div class="avatar" style="width:38px;height:38px;font-size:14px;">RO</div>
+                <div>
+                  <div style="font-weight:600;font-size:13px;">Rodrigo Schmidt</div>
+                  <div style="font-size:11px;color:#94a3b8;">Admin • rodrigo@agencia.com</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="info-card">
+              <h4>Histórico de Responsáveis</h4>
+              <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                  <div class="timeline-title">Rodrigo Schmidt (atual)</div>
+                  <div class="timeline-meta">Desde 15/01/2025 • Assumiu de Ana Lima</div>
+                </div>
+              </div>
+              <div class="timeline-item" style="border:none;">
+                <div class="timeline-dot" style="background:#94a3b8;"></div>
+                <div class="timeline-content">
+                  <div class="timeline-title" style="color:#64748b;">Ana Lima</div>
+                  <div class="timeline-meta">Jan/2025 → Jan/2025 (onboarding)</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- HISTÓRICO DE STATUS — FR-04 -->
+            <div class="info-card">
+              <h4>Histórico de Status <span class="annotation">FR-04</span></h4>
+              <div class="timeline-item">
+                <div class="timeline-dot" style="background:#dc2626;"></div>
+                <div class="timeline-content">
+                  <div class="timeline-title" style="color:#dc2626;">Inadimplente (atual)</div>
+                  <div class="timeline-meta">Desde 27/03/2026 · Automático: fatura Mar/2026 em atraso > 12 dias</div>
+                </div>
+              </div>
+              <div class="timeline-item">
+                <div class="timeline-dot" style="background:#22c55e;"></div>
+                <div class="timeline-content">
+                  <div class="timeline-title">Ativo</div>
+                  <div class="timeline-meta">Jan/2025 → Mar/2026 · 14 meses · Rodrigo Schmidt</div>
+                </div>
+              </div>
+              <div class="timeline-item" style="border:none;">
+                <div class="timeline-dot" style="background:#94a3b8;"></div>
+                <div class="timeline-content">
+                  <div class="timeline-title" style="color:#64748b;">Cadastrado</div>
+                  <div class="timeline-meta">05/01/2025 · Por Ana Lima</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: PRODUTOS -->
+      <div id="tab-produtos" class="tab-content" style="display:none;">
+        <div class="info-card">
+          <div style="display:flex;align-items:center;margin-bottom:16px;">
+            <div style="flex:1;">
+              <div style="font-size:12px;color:#94a3b8;">MRR deste cliente</div>
+              <div style="font-size:22px;font-weight:700;color:#2563eb;">R$ 4.300 <span style="font-size:13px;font-weight:400;color:#94a3b8;">/mês</span></div>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="openDrawer('drawer-produto-contratado')">+ Adicionar Produto</button>
+          </div>
+
+          <div class="produto-row">
+            <div style="width:10px;height:10px;border-radius:50%;background:#22c55e;flex-shrink:0;"></div>
+            <div class="produto-info">
+              <div class="produto-name">Gestão de Tráfego Pago</div>
+              <div class="produto-meta">Recorrente • Mensal • Desde 01/01/2025</div>
+            </div>
+            <div style="text-align:right;">
+              <div class="vencimento-alert">⚠️ Vence em 5 dias</div>
+              <div style="font-size:11px;color:#94a3b8;margin-top:2px;">01/04/2026</div>
+            </div>
+            <div class="produto-valor">R$ 2.500</div>
+            <span class="badge badge-green">Ativo</span>
+            <button class="btn btn-secondary btn-sm" onclick="openModal('modal-renovacao')">Renovar</button>
+            <button class="icon-btn">⋯</button>
+          </div>
+
+          <div class="produto-row">
+            <div style="width:10px;height:10px;border-radius:50%;background:#22c55e;flex-shrink:0;"></div>
+            <div class="produto-info">
+              <div class="produto-name">Gestão de Redes Sociais</div>
+              <div class="produto-meta">Recorrente • Mensal • Desde 01/01/2025</div>
+            </div>
+            <div style="text-align:right;">
+              <div class="vencimento-ok">Vence em 62 dias</div>
+              <div style="font-size:11px;color:#94a3b8;margin-top:2px;">01/06/2026</div>
+            </div>
+            <div class="produto-valor">R$ 1.800</div>
+            <span class="badge badge-green">Ativo</span>
+            <button class="btn btn-secondary btn-sm" onclick="openModal('modal-renovacao')">Renovar</button>
+            <button class="icon-btn">⋯</button>
+          </div>
+
+          <div class="produto-row" style="opacity:.7;">
+            <div style="width:10px;height:10px;border-radius:50%;background:#94a3b8;flex-shrink:0;"></div>
+            <div class="produto-info">
+              <div class="produto-name">CRM e Automação</div>
+              <div class="produto-meta">Pontual • Encerrado em 28/02/2026</div>
+            </div>
+            <div></div>
+            <div class="produto-valor" style="color:#94a3b8;">R$ 2.000</div>
+            <span class="badge badge-slate">Cancelado</span>
+            <button class="btn btn-secondary btn-sm" style="opacity:.5;" disabled>Renovar</button>
+            <button class="icon-btn">⋯</button>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <h4>Histórico de Renovações <span class="annotation">NOVO — FR-20</span></h4>
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <div class="timeline-title">Tráfego Pago renovado por 12 meses</div>
+              <div class="timeline-meta">01/04/2025 → 01/04/2026 • R$ 2.500/mês • Por Rodrigo</div>
+            </div>
+          </div>
+          <div class="timeline-item" style="border:none;">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <div class="timeline-title">Redes Sociais renovado por 6 meses</div>
+              <div class="timeline-meta">01/12/2025 → 01/06/2026 • R$ 1.800/mês • Por Rodrigo</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: CONTRATOS -->
+      <div id="tab-contratos" class="tab-content" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <div style="font-size:13px;color:#64748b;">2 contratos • R$ 4.300/mês em vigor</div>
+          <button class="btn btn-primary btn-sm" onclick="openDrawer('drawer-contrato')">+ Novo Contrato</button>
+        </div>
+
+        <!-- CONTRATO 1 — ATIVO (vencendo) -->
+        <div style="background:white;border:1px solid #fcd34d;border-radius:12px;overflow:hidden;margin-bottom:14px;">
+          <div style="padding:14px 18px;border-bottom:1px solid #fef3c7;display:flex;align-items:center;gap:12px;">
+            <span style="font-size:16px;">📄</span>
+            <div style="flex:1;">
+              <div style="font-size:14px;font-weight:700;color:#0f172a;">Contrato de Prestação de Serviços — Principal</div>
+              <div style="font-size:12px;color:#94a3b8;margin-top:1px;">#001 · Vigência: 01/01/2025 → <span style="color:#d97706;font-weight:600;">01/04/2026 ⚠️ vence em 5 dias</span></div>
+            </div>
+            <span class="badge badge-amber">Em renovação</span>
+            <button class="btn btn-secondary btn-sm">📄 Ver PDF</button>
+            <button class="icon-btn">⋯</button>
+          </div>
+          <!-- Produtos deste contrato -->
+          <div style="padding:12px 18px;background:#fffbeb;">
+            <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;">Serviços Incluídos</div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:white;border-radius:8px;border:1px solid #f1f5f9;">
+                <span class="dot dot-green"></span>
+                <div style="flex:1;">
+                  <div style="font-size:13px;font-weight:600;color:#0f172a;">Gestão de Tráfego Pago</div>
+                  <div style="font-size:11px;color:#94a3b8;">Recorrente · Mensal · Desde 01/01/2025 · Vence 01/04/2026</div>
+                </div>
+                <div style="font-size:14px;font-weight:700;color:#0f172a;">R$ 2.500/mês</div>
+                <span class="badge badge-green" style="font-size:10px;">Ativo</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:white;border-radius:8px;border:1px solid #f1f5f9;">
+                <span class="dot dot-green"></span>
+                <div style="flex:1;">
+                  <div style="font-size:13px;font-weight:600;color:#0f172a;">Gestão de Redes Sociais</div>
+                  <div style="font-size:11px;color:#94a3b8;">Recorrente · Mensal · Desde 01/01/2025 · Vence 01/06/2026</div>
+                </div>
+                <div style="font-size:14px;font-weight:700;color:#0f172a;">R$ 1.800/mês</div>
+                <span class="badge badge-green" style="font-size:10px;">Ativo</span>
+              </div>
+            </div>
+            <div style="margin-top:10px;padding-top:10px;border-top:1px solid #fde047;display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:12px;color:#92400e;font-weight:600;">Fatura mensal gerada por este contrato</span>
+              <span style="font-size:16px;font-weight:800;color:#0f172a;">R$ 4.300/mês</span>
+            </div>
+          </div>
+          <div style="padding:10px 18px;border-top:1px solid #fef3c7;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:12px;color:#94a3b8;">Valor total do contrato (12 meses): R$ 51.600</span>
+            <button class="btn btn-primary btn-sm" onclick="openModal('modal-renovacao')">Renovar Contrato</button>
+          </div>
+        </div>
+
+        <!-- CONTRATO 2 — ENCERRADO (histórico) -->
+        <div style="background:white;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;opacity:.7;">
+          <div style="padding:14px 18px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:12px;">
+            <span style="font-size:16px;">📄</span>
+            <div style="flex:1;">
+              <div style="font-size:14px;font-weight:700;color:#64748b;">Contrato de Prestação de Serviços — Anterior</div>
+              <div style="font-size:12px;color:#94a3b8;margin-top:1px;">#000 · Vigência: 01/01/2024 → 31/12/2024</div>
+            </div>
+            <span class="badge badge-slate">Encerrado</span>
+            <button class="btn btn-secondary btn-sm" style="opacity:.6;">📄 Ver PDF</button>
+            <button class="icon-btn">⋯</button>
+          </div>
+          <div style="padding:12px 18px;background:#f8fafc;">
+            <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;">Serviços que constavam</div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:white;border-radius:8px;border:1px solid #f1f5f9;">
+                <span class="dot dot-slate"></span>
+                <div style="flex:1;"><div style="font-size:13px;font-weight:500;color:#64748b;">CRM e Automação</div><div style="font-size:11px;color:#94a3b8;">Pontual · Encerrado em 28/02/2026</div></div>
+                <div style="font-size:13px;font-weight:600;color:#94a3b8;">R$ 2.000</div>
+                <span class="badge badge-slate" style="font-size:10px;">Cancelado</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: FINANCEIRO (avançado — FR-55 a FR-62) -->
+      <div id="tab-financeiro" class="tab-content" style="display:none;">
+
+        <!-- FAIXA TOPO: KPIs financeiros do cliente -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px;">
+          <div class="kpi-card highlight">
+            <div class="kpi-label">LTV Acumulado</div>
+            <div class="kpi-value">R$ 42.800</div>
+            <div class="kpi-sub">15 meses · desde Jan/2025</div>
+          </div>
+          <div class="kpi-card highlight">
+            <div class="kpi-label">ARR do Cliente <span class="ann">FR-63b</span></div>
+            <div class="kpi-value blue">R$ 51.600</div>
+            <div class="kpi-sub">MRR R$ 4.300 × 12</div>
+          </div>
+          <div class="kpi-card alert">
+            <div class="kpi-label">Em Aberto <span class="ann">FR-56</span></div>
+            <div class="kpi-value red">R$ 4.300</div>
+            <div class="kpi-sub" style="color:#dc2626;font-weight:600;">Fatura Mar/2026 · 12 dias de atraso</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Margem de Contribuição <span class="ann">FR-63</span></div>
+            <div class="kpi-value green">R$ 2.050</div>
+            <div class="kpi-sub">47% · Tráfego R$1.300 + Redes R$750</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr) 1.4fr;gap:12px;margin-bottom:20px;">
+          <div class="kpi-card">
+            <div class="kpi-label">CAC <span class="ann">FR-63c</span></div>
+            <div class="kpi-value">R$ 8.400</div>
+            <div class="kpi-sub">Custo de aquisição <button class="btn btn-secondary btn-sm" style="padding:2px 6px;font-size:10px;margin-left:4px;">✏️</button></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">LTV / CAC <span class="ann">FR-63d</span></div>
+            <div style="display:flex;align-items:center;gap:8px;margin:6px 0 2px;">
+              <div class="kpi-value green" style="margin:0;">5.1×</div>
+              <div style="width:10px;height:10px;border-radius:50%;background:#22c55e;" title="Saudável"></div>
+            </div>
+            <div class="kpi-sub">Benchmark: ≥ 3×</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Payback Period <span class="ann">FR-63e</span></div>
+            <div class="kpi-value amber">~2 meses</div>
+            <div class="kpi-sub">CAC ÷ ticket médio</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Tenure <span class="ann">FR-63f</span></div>
+            <div class="kpi-value">15 meses</div>
+            <div class="kpi-sub">Cliente desde Jan/2025</div>
+          </div>
+          <div class="notas-card">
+            <div class="notas-label">Notas Financeiras <span class="ann">FR-62</span></div>
+            <div class="notas-input">"Cliente paga sempre na segunda quinzena. Negociou parcelamento em 2× para Mar/26."</div>
+            <div class="notas-hint">Visível apenas internamente</div>
+          </div>
+        </div>
+
+        <!-- PRÓXIMA FATURA BANNER — FR-57 (fatura unificada) -->
+        <div style="background:linear-gradient(90deg,#1e40af 0%,#2563eb 100%);border-radius:12px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:20px;color:white;">
+          <div style="flex:1;">
+            <div style="font-size:10px;font-weight:700;opacity:.7;text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px;">Próxima Fatura <span class="ann" style="background:rgba(255,255,255,.2);color:white;border-color:rgba(255,255,255,.3);">FR-57</span></div>
+            <div style="font-size:28px;font-weight:800;margin-bottom:8px;">R$ 4.300</div>
+            <!-- BREAKDOWN POR CONTRATO — FR-31b -->
+            <div style="background:rgba(255,255,255,.12);border-radius:8px;padding:10px 14px;display:flex;flex-direction:column;gap:5px;">
+              <div style="font-size:10px;font-weight:700;opacity:.6;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Breakdown por Contrato</div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;opacity:.9;">
+                <span>Contrato #001 — Tráfego Pago + Redes Sociais</span>
+                <span style="font-weight:700;">R$ 4.300</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:3px;padding-left:10px;margin-top:2px;font-size:11px;opacity:.75;">
+                <div style="display:flex;justify-content:space-between;"><span>↳ Gestão de Tráfego Pago</span><span>R$ 2.500</span></div>
+                <div style="display:flex;justify-content:space-between;"><span>↳ Gestão de Redes Sociais</span><span>R$ 1.800</span></div>
+              </div>
+              <div style="border-top:1px solid rgba(255,255,255,.2);margin-top:4px;padding-top:6px;display:flex;justify-content:space-between;font-size:12px;font-weight:700;">
+                <span>Total da Fatura</span>
+                <span>R$ 4.300</span>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:12px;flex-shrink:0;">
+            <div style="text-align:center;background:rgba(255,255,255,.15);border-radius:10px;padding:10px 18px;">
+              <div style="font-size:10px;opacity:.7;text-transform:uppercase;letter-spacing:.5px;">Vencimento</div>
+              <div style="font-size:22px;font-weight:800;">15/04/2026</div>
+              <div style="font-size:11px;opacity:.7;">em 19 dias</div>
+            </div>
+            <button class="btn" style="background:white;color:#1d4ed8;font-weight:600;width:100%;" onclick="openModal('modal-pagamento')">+ Registrar Pagamento</button>
+          </div>
+        </div>
+
+        <!-- GRID PRINCIPAL -->
+        <div class="fin-main-grid">
+
+          <!-- COLUNA ESQUERDA: TIMELINE UNIFICADA -->
+          <div>
+            <div class="section-card">
+              <div class="section-header">
+                <div class="section-title">Timeline Financeira <span class="ann">FR-55</span></div>
+                <div class="filter-tabs">
+                  <div class="filter-tab active" onclick="setFilterTab(this)">Todos</div>
+                  <div class="filter-tab" onclick="setFilterTab(this)">Cobranças</div>
+                  <div class="filter-tab" onclick="setFilterTab(this)">Pagamentos</div>
+                  <div class="filter-tab" onclick="setFilterTab(this)">Renovações</div>
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="openModal('modal-pagamento')">+ Registrar</button>
+              </div>
+              <div class="section-body">
+                <div class="fin-timeline">
+
+                  <div style="padding:8px 0 4px;font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid #f1f5f9;margin-bottom:4px;">Março 2026</div>
+
+                  <!-- FATURA UNIFICADA MAR/2026 — FR-31 -->
+                  <div class="tl-item">
+                    <div class="tl-dot-col"><div class="tl-dot red"></div><div class="tl-line"></div></div>
+                    <div class="tl-content">
+                      <div class="tl-top">
+                        <div><span class="tl-event">Fatura Mar/2026</span><span class="tl-badge atraso">Em atraso · 12d</span></div>
+                        <div class="tl-amount neg">R$ 4.300</div>
+                      </div>
+                      <div class="tl-meta">Venceu 15/03/2026 · Tráfego R$ 2.500 + Redes R$ 1.800</div>
+                      <div style="margin-top:6px;"><button class="btn btn-primary btn-sm" onclick="openModal('modal-pagamento')">Quitar fatura</button></div>
+                    </div>
+                  </div>
+
+                  <div style="padding:8px 0 4px;font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid #f1f5f9;margin-bottom:4px;margin-top:8px;">Fevereiro 2026</div>
+
+                  <!-- PAGAMENTO FATURA FEV/2026 -->
+                  <div class="tl-item">
+                    <div class="tl-dot-col"><div class="tl-dot green"></div><div class="tl-line"></div></div>
+                    <div class="tl-content">
+                      <div class="tl-top">
+                        <div><span class="tl-event">Pagamento recebido — Fatura Fev/2026</span><span class="tl-badge paga">Pago em dia</span></div>
+                        <div class="tl-amount" style="color:#16a34a;">+ R$ 4.300</div>
+                      </div>
+                      <div class="tl-meta">18/02/2026 · PIX · Tráfego R$ 2.500 + Redes R$ 1.800</div>
+                    </div>
+                  </div>
+
+                  <div class="tl-item">
+                    <div class="tl-dot-col"><div class="tl-dot blue"></div><div class="tl-line"></div></div>
+                    <div class="tl-content">
+                      <div class="tl-top">
+                        <div><span class="tl-event">Renovação — Redes Sociais</span><span class="tl-badge renovacao">Renovado 6 meses</span></div>
+                      </div>
+                      <div class="tl-meta">01/02/2026 · Renovado até 01/08/2026 · R$ 1.800/mês (sem reajuste)</div>
+                    </div>
+                  </div>
+
+                  <div style="padding:8px 0 4px;font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid #f1f5f9;margin-bottom:4px;margin-top:8px;">Janeiro 2026</div>
+
+                  <!-- PAGAMENTO FATURA JAN/2026 -->
+                  <div class="tl-item">
+                    <div class="tl-dot-col"><div class="tl-dot green"></div><div class="tl-line"></div></div>
+                    <div class="tl-content">
+                      <div class="tl-top">
+                        <div><span class="tl-event">Pagamento recebido — Fatura Jan/2026</span><span class="tl-badge paga">Pago em dia</span></div>
+                        <div class="tl-amount" style="color:#16a34a;">+ R$ 4.300</div>
+                      </div>
+                      <div class="tl-meta">16/01/2026 · PIX · Tráfego R$ 2.500 + Redes R$ 1.800</div>
+                    </div>
+                  </div>
+
+                  <div class="tl-item">
+                    <div class="tl-dot-col"><div class="tl-dot blue"></div><div class="tl-line"></div></div>
+                    <div class="tl-content">
+                      <div class="tl-top">
+                        <div><span class="tl-event">Renovação + Reajuste — Tráfego Pago</span><span class="tl-badge reajuste">+8% reajuste</span></div>
+                      </div>
+                      <div class="tl-meta">01/01/2026 · R$ 2.315 → R$ 2.500 (+8,0%) · Renovado 12 meses</div>
+                    </div>
+                  </div>
+
+                  <div class="tl-item" style="border:none;">
+                    <div class="tl-dot-col"><div class="tl-dot slate"></div></div>
+                    <div class="tl-content">
+                      <div style="font-size:12px;color:#94a3b8;font-style:italic;">+ 9 eventos anteriores</div>
+                      <button class="btn btn-ghost btn-sm" style="margin-top:4px;">Carregar mais →</button>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- COLUNA DIREITA: MÉTRICAS -->
+          <div class="sidebar-right">
+
+            <!-- MRR DO CLIENTE — FR-59 -->
+            <div class="mrr-chart-card">
+              <div class="mrr-chart-header">
+                <div class="mrr-chart-title">MRR do Cliente <span class="ann">FR-59</span></div>
+                <div class="mrr-chart-value">R$ 4.300</div>
+              </div>
+              <div class="mrr-bars">
+                <div class="mrr-bar-wrap"><div class="mrr-amount">1.8k</div><div class="mrr-bar past" style="height:28px;"></div><div class="mrr-month">Set</div></div>
+                <div class="mrr-bar-wrap"><div class="mrr-amount">1.8k</div><div class="mrr-bar past" style="height:28px;"></div><div class="mrr-month">Out</div></div>
+                <div class="mrr-bar-wrap"><div class="mrr-amount">1.8k</div><div class="mrr-bar past" style="height:28px;"></div><div class="mrr-month">Nov</div></div>
+                <div class="mrr-bar-wrap"><div class="mrr-amount">2.3k</div><div class="mrr-bar past" style="height:36px;"></div><div class="mrr-month">Dez</div></div>
+                <div class="mrr-bar-wrap"><div class="mrr-amount">2.5k</div><div class="mrr-bar past" style="height:39px;"></div><div class="mrr-month">Jan</div></div>
+                <div class="mrr-bar-wrap"><div class="mrr-amount">4.3k</div><div class="mrr-bar past" style="height:67px;"></div><div class="mrr-month">Fev</div></div>
+                <div class="mrr-bar-wrap"><div class="mrr-amount" style="color:#2563eb;">4.3k</div><div class="mrr-bar current" style="height:67px;"></div><div class="mrr-month" style="color:#2563eb;font-weight:700;">Mar</div></div>
+              </div>
+              <div class="mrr-trend"><span class="trend-up">↑ +139%</span><span class="trend-desc">vs 6 meses atrás · Adicionou Tráfego em Jan</span></div>
+            </div>
+
+            <!-- PONTUALIDADE — FR-60 -->
+            <div class="pontualidade-card">
+              <div class="pont-header">
+                <div class="pont-title">Pontualidade <span class="ann">FR-60</span></div>
+                <div class="pont-score" style="color:#d97706;">73%</div>
+              </div>
+              <div style="font-size:11px;color:#64748b;margin-bottom:10px;">Últimos 15 pagamentos</div>
+              <div class="pont-grid">
+                <div class="pont-dot ok">✓</div><div class="pont-dot ok">✓</div><div class="pont-dot late" style="background:#f59e0b;">!</div>
+                <div class="pont-dot ok">✓</div><div class="pont-dot ok">✓</div><div class="pont-dot ok">✓</div>
+                <div class="pont-dot late">✗</div><div class="pont-dot ok">✓</div><div class="pont-dot ok">✓</div>
+                <div class="pont-dot ok">✓</div><div class="pont-dot ok">✓</div><div class="pont-dot late" style="background:#f59e0b;">!</div>
+                <div class="pont-dot ok">✓</div><div class="pont-dot ok">✓</div><div class="pont-dot late">✗</div>
+              </div>
+              <div class="pont-legend">
+                <div class="pont-leg-item"><div class="pont-leg-dot" style="background:#22c55e;"></div> Em dia (11)</div>
+                <div class="pont-leg-item"><div class="pont-leg-dot" style="background:#f59e0b;"></div> Atrasado (2)</div>
+                <div class="pont-leg-item"><div class="pont-leg-dot" style="background:#ef4444;"></div> Não pago (2)</div>
+              </div>
+            </div>
+
+            <!-- RESUMO ANUAL — FR-58 -->
+            <div class="resumo-card">
+              <div class="resumo-title">Resumo Anual <span class="ann">FR-58</span></div>
+              <div class="resumo-row"><span class="resumo-label">Pago em 2026</span><span class="resumo-value">R$ 8.600 <span class="resumo-diff">↑ +34%</span></span></div>
+              <div class="resumo-row"><span class="resumo-label">Pago em 2025</span><span class="resumo-value" style="color:#64748b;font-weight:500;">R$ 6.400</span></div>
+              <div class="resumo-row"><span class="resumo-label">LTV Total</span><span class="resumo-value">R$ 42.800</span></div>
+              <div class="resumo-row"><span class="resumo-label">Ticket médio mensal</span><span class="resumo-value">R$ 2.853</span></div>
+              <div class="resumo-row" style="border:none;"><span class="resumo-label">Cliente há</span><span class="resumo-value">15 meses</span></div>
+            </div>
+
+            <!-- HISTÓRICO DE REAJUSTES — FR-61 -->
+            <div class="section-card">
+              <div class="section-header">
+                <div class="section-title">Histórico de Reajustes <span class="ann">FR-61</span></div>
+              </div>
+              <div class="section-body" style="padding:10px 18px;">
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                  <div style="background:#f8fafc;border-radius:8px;padding:10px 12px;">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                      <div style="font-size:12px;font-weight:600;color:#1e293b;">Tráfego Pago — Jan/2026</div>
+                      <div style="font-size:13px;font-weight:800;color:#7c3aed;">+8,0%</div>
+                    </div>
+                    <div style="font-size:11px;color:#94a3b8;margin-top:2px;">R$ 2.315 → R$ 2.500 · Renovação 12m</div>
+                  </div>
+                  <div style="background:#f8fafc;border-radius:8px;padding:10px 12px;">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                      <div style="font-size:12px;font-weight:600;color:#1e293b;">Redes Sociais — Jun/2025</div>
+                      <div style="font-size:13px;font-weight:800;color:#7c3aed;">+5,0%</div>
+                    </div>
+                    <div style="font-size:11px;color:#94a3b8;margin-top:2px;">R$ 1.715 → R$ 1.800 · Renovação 6m</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: NPS / CSAT — FR-64 a FR-66 -->
+      <div id="tab-nps" class="tab-content" style="display:none;">
+        <div class="grid-2" style="margin-bottom:16px;">
+
+          <!-- SCORE ATUAL -->
+          <div class="info-card" style="display:flex;flex-direction:column;gap:12px;">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+              <h4>Score NPS Atual <span class="ann">FR-66</span></h4>
+              <button class="btn btn-primary btn-sm" onclick="openModal('modal-nps')">+ Registrar</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:20px;">
+              <div style="text-align:center;">
+                <div style="font-size:52px;font-weight:800;color:#dc2626;line-height:1;">5</div>
+                <div style="font-size:11px;color:#94a3b8;margin-top:2px;">Última nota</div>
+              </div>
+              <div style="flex:1;">
+                <div style="font-size:12px;color:#64748b;margin-bottom:6px;">Registrado em 15/03/2026 por Rodrigo Schmidt</div>
+                <div style="background:#fef2f2;border-radius:8px;padding:8px 12px;font-size:12px;color:#991b1b;font-style:italic;">"Cliente reclamou de demora no relatório mensal e falta de proatividade no atendimento."</div>
+              </div>
+            </div>
+            <!-- ESCALA NPS VISUAL -->
+            <div>
+              <div style="display:flex;gap:2px;margin-bottom:4px;">
+                <div style="flex:3;background:#ef4444;border-radius:4px 0 0 4px;height:8px;"></div>
+                <div style="flex:2;background:#f59e0b;height:8px;"></div>
+                <div style="flex:5;background:#22c55e;border-radius:0 4px 4px 0;height:8px;"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:#94a3b8;">
+                <span>0–6 Detratores</span>
+                <span>7–8 Neutros</span>
+                <span>9–10 Promotores</span>
+              </div>
+            </div>
+            <div style="font-size:11px;color:#dc2626;font-weight:600;">⚠️ Detrator — Ação urgente recomendada</div>
+          </div>
+
+          <!-- TENDÊNCIA -->
+          <div class="info-card">
+            <h4>Evolução do NPS <span class="ann">FR-65</span></h4>
+            <div class="mrr-bars" style="margin-top:8px;">
+              <div class="mrr-bar-wrap"><div class="mrr-amount" style="color:#22c55e;">9</div><div class="mrr-bar" style="height:58px;background:#22c55e;"></div><div class="mrr-month">Mar/25</div></div>
+              <div class="mrr-bar-wrap"><div class="mrr-amount" style="color:#22c55e;">8</div><div class="mrr-bar" style="height:51px;background:#22c55e;"></div><div class="mrr-month">Jun/25</div></div>
+              <div class="mrr-bar-wrap"><div class="mrr-amount" style="color:#22c55e;">8</div><div class="mrr-bar" style="height:51px;background:#22c55e;"></div><div class="mrr-month">Set/25</div></div>
+              <div class="mrr-bar-wrap"><div class="mrr-amount" style="color:#f59e0b;">7</div><div class="mrr-bar" style="height:45px;background:#f59e0b;"></div><div class="mrr-month">Dez/25</div></div>
+              <div class="mrr-bar-wrap"><div class="mrr-amount" style="color:#dc2626;">5</div><div class="mrr-bar current" style="height:32px;background:#ef4444;"></div><div class="mrr-month" style="color:#dc2626;font-weight:700;">Mar/26</div></div>
+            </div>
+            <div style="margin-top:10px;padding-top:8px;border-top:1px solid #f1f5f9;font-size:12px;color:#dc2626;font-weight:600;">↓ Queda de 9 → 5 em 12 meses · tendência de risco</div>
+          </div>
+        </div>
+
+        <!-- HISTÓRICO -->
+        <div class="info-card">
+          <div style="display:flex;align-items:center;margin-bottom:12px;">
+            <h4 style="flex:1;">Histórico de Registros <span class="ann">FR-65</span></h4>
+          </div>
+          <table style="font-size:13px;">
+            <thead><tr><th>Data</th><th>Nota</th><th>Registrado por</th><th>Observação</th></tr></thead>
+            <tbody>
+              <tr>
+                <td style="color:#94a3b8;">15/03/2026</td>
+                <td><span class="badge badge-red">5</span></td>
+                <td>Rodrigo Schmidt</td>
+                <td style="font-size:12px;color:#64748b;">Reclamou de demora no relatório e falta de proatividade</td>
+              </tr>
+              <tr>
+                <td style="color:#94a3b8;">12/12/2025</td>
+                <td><span class="badge badge-amber">7</span></td>
+                <td>Rodrigo Schmidt</td>
+                <td style="font-size:12px;color:#64748b;">Satisfeito mas pediu mais reuniões de acompanhamento</td>
+              </tr>
+              <tr>
+                <td style="color:#94a3b8;">15/09/2025</td>
+                <td><span class="badge badge-green">8</span></td>
+                <td>Ana Lima</td>
+                <td style="font-size:12px;color:#64748b;">Elogiou resultados das campanhas de setembro</td>
+              </tr>
+              <tr>
+                <td style="color:#94a3b8;">10/06/2025</td>
+                <td><span class="badge badge-green">8</span></td>
+                <td>Ana Lima</td>
+                <td style="font-size:12px;color:#64748b;">—</td>
+              </tr>
+              <tr>
+                <td style="color:#94a3b8;">20/03/2025</td>
+                <td><span class="badge badge-green">9</span></td>
+                <td>Ana Lima</td>
+                <td style="font-size:12px;color:#64748b;">Primeiro trimestre excelente, cliente muito animado</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB: DOCUMENTOS -->
+      <div id="tab-documentos" class="tab-content" style="display:none;">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+          <button class="btn btn-primary btn-sm">↑ Upload Documento</button>
+        </div>
+        <div class="table-card">
+          <table>
+            <thead><tr><th>Nome</th><th>Tipo</th><th>Tamanho</th><th>Enviado em</th><th></th></tr></thead>
+            <tbody>
+              <tr>
+                <td><div style="display:flex;align-items:center;gap:8px;"><span>📄</span><span style="font-weight:500;">Contrato_Sorrisos_2025.pdf</span></div></td>
+                <td><span class="badge badge-blue">Contrato</span></td>
+                <td style="color:#94a3b8;">842 KB</td>
+                <td style="color:#94a3b8;">05/01/2025</td>
+                <td><button class="btn btn-secondary btn-sm">⬇ Download</button> <button class="icon-btn">🗑</button></td>
+              </tr>
+              <tr>
+                <td><div style="display:flex;align-items:center;gap:8px;"><span>📄</span><span style="font-weight:500;">Procuracao_Google_Ads.pdf</span></div></td>
+                <td><span class="badge badge-violet">Procuração</span></td>
+                <td style="color:#94a3b8;">210 KB</td>
+                <td style="color:#94a3b8;">08/01/2025</td>
+                <td><button class="btn btn-secondary btn-sm">⬇ Download</button> <button class="icon-btn">🗑</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== CATÁLOGO DE PRODUTOS ========== -->
+    <div class="screen" id="screen-produtos-catalogo">
+      <div class="page-header-row page-header">
+        <div>
+          <div class="page-title">Catálogo de Produtos <span class="annotation">NOVO — Sprint 1</span></div>
+          <div class="page-sub">6 produtos no catálogo • Apenas admin</div>
+        </div>
+        <button class="btn btn-primary" onclick="openDrawer('drawer-produto-catalogo')">+ Novo Produto</button>
+      </div>
+
+      <div class="filter-bar">
+        <input class="input" placeholder="🔍  Buscar produto..." />
+        <select class="input"><option>Todas as categorias</option><option>Marketing Digital</option><option>Vendas</option><option>Marketing Local</option></select>
+        <select class="input"><option>Todos os tipos</option><option>Recorrente</option><option>Pontual</option></select>
+        <select class="input"><option>Ativos e inativos</option><option>Apenas ativos</option><option>Apenas inativos</option></select>
+      </div>
+
+      <div class="table-card">
+        <table>
+          <thead><tr><th>Produto</th><th>Categoria</th><th>Tipo</th><th>Periodicidade</th><th>Valor Base</th><th>Custo Base <span class="ann">FR-14b</span></th><th>Margem</th><th>Uso</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            <tr>
+              <td><div style="font-weight:500;">Gestão de Tráfego Pago</div><div style="font-size:11px;color:#94a3b8;">Gestão completa de campanhas pagas</div></td>
+              <td><span class="badge badge-blue">Marketing Digital</span></td>
+              <td><span class="badge badge-green">Recorrente</span></td>
+              <td>Mensal</td>
+              <td style="font-weight:600;">R$ 2.500</td>
+              <td style="color:#64748b;">R$ 1.200</td>
+              <td><span style="font-weight:700;color:#16a34a;">52%</span></td>
+              <td style="color:#94a3b8;">18 clientes</td>
+              <td><span class="badge badge-green">Ativo</span></td>
+              <td><button class="icon-btn">✏️</button></td>
+            </tr>
+            <tr>
+              <td><div style="font-weight:500;">Gestão de Redes Sociais</div><div style="font-size:11px;color:#94a3b8;">Feed, stories e engajamento</div></td>
+              <td><span class="badge badge-blue">Marketing Digital</span></td>
+              <td><span class="badge badge-green">Recorrente</span></td>
+              <td>Mensal</td>
+              <td style="font-weight:600;">R$ 1.800</td>
+              <td style="color:#64748b;">R$ 850</td>
+              <td><span style="font-weight:700;color:#16a34a;">53%</span></td>
+              <td style="color:#94a3b8;">14 clientes</td>
+              <td><span class="badge badge-green">Ativo</span></td>
+              <td><button class="icon-btn">✏️</button></td>
+            </tr>
+            <tr>
+              <td><div style="font-weight:500;">Consultoria de Vendas</div><div style="font-size:11px;color:#94a3b8;">Processo comercial e treinamento</div></td>
+              <td><span class="badge badge-violet">Vendas</span></td>
+              <td><span class="badge badge-amber">Pontual</span></td>
+              <td>—</td>
+              <td style="font-weight:600;">R$ 3.000</td>
+              <td style="color:#64748b;">R$ 2.200</td>
+              <td><span style="font-weight:700;color:#d97706;">27%</span></td>
+              <td style="color:#94a3b8;">6 clientes</td>
+              <td><span class="badge badge-green">Ativo</span></td>
+              <td><button class="icon-btn">✏️</button></td>
+            </tr>
+            <tr style="opacity:.6;">
+              <td><div style="font-weight:500;">SEO Avançado (legado)</div><div style="font-size:11px;color:#94a3b8;">Antigo produto — substituído</div></td>
+              <td><span class="badge badge-blue">Marketing Digital</span></td>
+              <td><span class="badge badge-green">Recorrente</span></td>
+              <td>Mensal</td>
+              <td style="font-weight:600;">R$ 1.200</td>
+              <td style="color:#94a3b8;">—</td>
+              <td style="color:#94a3b8;">—</td>
+              <td style="color:#94a3b8;">2 clientes</td>
+              <td><span class="badge badge-slate">Inativo</span></td>
+              <td><button class="icon-btn">✏️</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ========== FINANCEIRO GLOBAL ========== -->
+    <div class="screen" id="screen-financeiro">
+      <div class="page-header-row page-header">
+        <div><div class="page-title">Financeiro</div><div class="page-sub">Visão consolidada de receitas e cobranças</div></div>
+        <div class="page-actions">
+          <button class="btn btn-secondary btn-sm">↓ Exportar CSV</button>
+        </div>
+      </div>
+      <div class="kpi-grid kpi-grid-4">
+        <div class="kpi-card"><div class="kpi-label">MRR Total</div><div class="kpi-value blue">R$ 42.800</div><div class="kpi-sub">Produtos ativos</div></div>
+        <div class="kpi-card"><div class="kpi-label">LTV Acumulado</div><div class="kpi-value">R$ 318.200</div><div class="kpi-sub">Histórico confirmado</div></div>
+        <div class="kpi-card alert"><div class="kpi-label">Em aberto</div><div class="kpi-value red">R$ 6.400</div><div class="kpi-sub">3 clientes inadimplentes</div></div>
+        <div class="kpi-card"><div class="kpi-label">Recebido (Mar)</div><div class="kpi-value green">R$ 38.200</div><div class="kpi-sub">Pagamentos confirmados</div></div>
+      </div>
+      <div class="table-card">
+        <div class="table-header">
+          <h3>Cobranças em Aberto <span class="annotation">NOVO — FR-31</span></h3>
+        </div>
+        <table>
+          <thead><tr><th>Cliente</th><th>Referência</th><th>Vencimento</th><th>Valor</th><th>Atraso</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="td-primary" onclick="show('perfil-cliente')">Clínica Sorrisos</td><td>Mar/2026 — Tráfego</td><td style="color:#dc2626;">15/03/2026</td><td style="font-weight:600;">R$ 2.500</td><td><span class="badge badge-red">12 dias</span></td><td><span class="badge badge-red">Inadimplente</span></td><td><button class="btn btn-secondary btn-sm">Quitar</button></td></tr>
+            <tr><td class="td-primary">OdontoPrime</td><td>Mar/2026 — CRM</td><td style="color:#dc2626;">10/03/2026</td><td style="font-weight:600;">R$ 2.000</td><td><span class="badge badge-red">17 dias</span></td><td><span class="badge badge-red">Inadimplente</span></td><td><button class="btn btn-secondary btn-sm">Quitar</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="table-card">
+        <div class="table-header"><h3>Últimos Pagamentos</h3></div>
+        <table>
+          <thead><tr><th>Data</th><th>Cliente</th><th>Referência</th><th>Forma</th><th>Valor</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td style="color:#94a3b8;">25/03/2026</td><td class="td-primary">SmilePro</td><td>Mar/2026</td><td>PIX</td><td style="font-weight:600;">R$ 4.600</td><td><span class="badge badge-green">Confirmado</span></td></tr>
+            <tr><td style="color:#94a3b8;">20/03/2026</td><td class="td-primary">OdontoPrime</td><td>Mar/2026 — Tráfego</td><td>Boleto</td><td style="font-weight:600;">R$ 2.500</td><td><span class="badge badge-green">Confirmado</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ========== CONTRATOS GLOBAL ========== -->
+    <div class="screen" id="screen-contratos">
+      <div class="page-header-row page-header">
+        <div><div class="page-title">Contratos</div><div class="page-sub">Todos os contratos da operação</div></div>
+      </div>
+      <div class="kpi-grid kpi-grid-3">
+        <div class="kpi-card"><div class="kpi-label">Total</div><div class="kpi-value">24</div></div>
+        <div class="kpi-card"><div class="kpi-label">Ativos</div><div class="kpi-value green">21</div></div>
+        <div class="kpi-card warn"><div class="kpi-label">A vencer em 30d</div><div class="kpi-value amber">4</div></div>
+      </div>
+      <div class="table-card">
+        <table>
+          <thead><tr><th>Cliente</th><th>Tipo</th><th>Início</th><th>Vencimento</th><th>Valor</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td class="td-primary" onclick="show('perfil-cliente')">Clínica Sorrisos</td><td>Prestação de Serviços</td><td>01/01/2025</td><td><span style="color:#d97706;font-weight:600;">01/04/2026 (5d) ⚠️</span></td><td style="font-weight:600;">R$ 51.600</td><td><span class="badge badge-amber">Em renovação</span></td></tr>
+            <tr><td class="td-primary">SmilePro</td><td>Prestação de Serviços</td><td>01/06/2024</td><td><span style="color:#d97706;">01/04/2026 (5d)</span></td><td style="font-weight:600;">R$ 110.400</td><td><span class="badge badge-green">Ativo</span></td></tr>
+            <tr><td class="td-primary">OdontoPrime</td><td>Consultoria</td><td>01/03/2024</td><td>01/03/2027</td><td style="font-weight:600;">R$ 244.800</td><td><span class="badge badge-green">Ativo</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ========== DOCUMENTOS GLOBAL ========== -->
+    <div class="screen" id="screen-documentos">
+      <div class="page-header-row page-header">
+        <div><div class="page-title">Documentos</div><div class="page-sub">12 documentos armazenados</div></div>
+      </div>
+      <div class="filter-bar">
+        <input class="input" placeholder="🔍  Buscar documento..." />
+        <select class="input"><option>Todos os tipos</option><option>Contrato</option><option>Procuração</option><option>Autorização</option><option>NF</option><option>Outro</option></select>
+      </div>
+      <div class="table-card">
+        <table>
+          <thead><tr><th>Documento</th><th>Cliente</th><th>Tipo</th><th>Tamanho</th><th>Enviado em</th></tr></thead>
+          <tbody>
+            <tr><td><div style="display:flex;align-items:center;gap:8px;"><span>📄</span><span style="font-weight:500;">Contrato_Sorrisos_2025.pdf</span></div></td><td class="td-primary" onclick="show('perfil-cliente')">Clínica Sorrisos</td><td><span class="badge badge-blue">Contrato</span></td><td style="color:#94a3b8;">842 KB</td><td style="color:#94a3b8;">05/01/2025</td></tr>
+            <tr><td><div style="display:flex;align-items:center;gap:8px;"><span>📄</span><span style="font-weight:500;">Procuracao_Google_Ads.pdf</span></div></td><td class="td-primary">OdontoPrime</td><td><span class="badge badge-violet">Procuração</span></td><td style="color:#94a3b8;">210 KB</td><td style="color:#94a3b8;">08/01/2025</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ========== USUÁRIOS ========== -->
+    <div class="screen" id="screen-usuarios">
+      <div class="page-header-row page-header">
+        <div><div class="page-title">Usuários</div><div class="page-sub">3 usuários na plataforma</div></div>
+        <button class="btn btn-primary" onclick="openModal('modal-convite')">+ Convidar Usuário</button>
+      </div>
+      <div class="table-card">
+        <table>
+          <thead><tr><th>Usuário</th><th>Role</th><th>Clientes</th><th>Membro desde</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            <tr>
+              <td><div style="display:flex;align-items:center;gap:8px;"><div class="avatar" style="width:28px;height:28px;font-size:11px;">RO</div><div><div style="font-weight:500;font-size:13px;">Rodrigo Schmidt</div><div style="font-size:11px;color:#94a3b8;">rodrigo@agencia.com</div></div></div></td>
+              <td><span class="badge badge-violet">Admin</span></td>
+              <td style="color:#94a3b8;">Todos</td>
+              <td style="color:#94a3b8;">27/03/2026</td>
+              <td><span class="badge badge-green">Ativo</span></td>
+              <td><button class="icon-btn">⋯</button></td>
+            </tr>
+            <tr>
+              <td><div style="display:flex;align-items:center;gap:8px;"><div class="avatar" style="width:28px;height:28px;font-size:11px;background:#7c3aed;">AL</div><div><div style="font-weight:500;font-size:13px;">Ana Lima</div><div style="font-size:11px;color:#94a3b8;">ana@agencia.com</div></div></div></td>
+              <td><span class="badge badge-blue">Gestor</span></td>
+              <td style="color:#94a3b8;">8 clientes</td>
+              <td style="color:#94a3b8;">15/02/2026</td>
+              <td><span class="badge badge-green">Ativo</span></td>
+              <td><button class="icon-btn">⋯</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ========== CONFIGURAÇÕES ========== -->
+    <div class="screen" id="screen-configuracoes">
+      <div class="page-header"><div class="page-title">Configurações</div><div class="page-sub">Dados da sua conta</div></div>
+      <div style="max-width:520px;">
+        <div class="info-card">
+          <div style="display:flex;align-items:center;gap:12px;padding-bottom:16px;border-bottom:1px solid #f1f5f9;margin-bottom:16px;">
+            <div class="avatar" style="width:48px;height:48px;font-size:16px;">RO</div>
+            <div style="flex:1;">
+              <div style="font-weight:700;font-size:15px;">Rodrigo Schmidt</div>
+              <div style="font-size:13px;color:#94a3b8;">rodrigo@agencia.com</div>
+            </div>
+            <span class="badge badge-violet">Admin</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;">
+            <div style="display:flex;justify-content:space-between;"><span style="color:#94a3b8;">Email</span><span style="font-weight:500;">rodrigo@agencia.com</span></div>
+            <div style="display:flex;justify-content:space-between;"><span style="color:#94a3b8;">Membro desde</span><span style="font-weight:500;">27/03/2026</span></div>
+            <div style="display:flex;justify-content:space-between;"><span style="color:#94a3b8;">Status</span><span><span class="badge badge-green">Ativo</span></span></div>
+          </div>
+          <p style="margin-top:16px;font-size:11px;color:#94a3b8;">Para alterar senha ou email, entre em contato com o administrador do sistema.</p>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+
+<!-- ========== DRAWERS ========== -->
+
+<!-- DRAWER: Novo Cliente -->
+<div class="drawer-overlay" id="drawer-cliente" onclick="closeIfOverlay(event,'drawer-cliente')">
+  <div class="drawer">
+    <div class="drawer-header">
+      <div><div class="drawer-title">Novo Cliente</div><div class="drawer-sub">Preencha os dados da clínica</div></div>
+      <button class="close-btn" onclick="closeDrawer('drawer-cliente')">✕</button>
+    </div>
+    <div class="drawer-body">
+      <div class="form-grid">
+        <div class="form-section">Dados da Clínica</div>
+        <div class="form-group"><div class="form-label">Nome da clínica <span>*</span></div><input class="form-input" placeholder="Clínica Exemplo" /></div>
+        <div class="form-grid form-grid-2">
+          <div class="form-group"><div class="form-label">CNPJ</div><input class="form-input" placeholder="00.000.000/0001-00" /></div>
+          <div class="form-group"><div class="form-label">Status <span>*</span></div><select class="form-input"><option>Ativo</option><option>Inadimplente</option><option>Pausado</option><option>Cancelado</option></select></div>
+        </div>
+        <div class="form-grid form-grid-2">
+          <div class="form-group"><div class="form-label">Segmento</div><select class="form-input"><option value="">Selecionar</option><option>Solo</option><option>Rede</option><option>Especialidade</option></select></div>
+          <div class="form-group"><div class="form-label">Porte</div><select class="form-input"><option value="">Selecionar</option><option>Pequeno</option><option>Médio</option><option>Grande</option></select></div>
+        </div>
+
+        <div class="form-section">Endereço</div>
+        <div class="form-group"><div class="form-label">Logradouro</div><input class="form-input" placeholder="Rua, número, bairro" /></div>
+        <div class="form-grid form-grid-3">
+          <div class="form-group"><div class="form-label">Cidade</div><input class="form-input" placeholder="São Paulo" /></div>
+          <div class="form-group"><div class="form-label">Estado</div><input class="form-input" placeholder="SP" /></div>
+          <div class="form-group"><div class="form-label">CEP</div><input class="form-input" placeholder="00000-000" /></div>
+        </div>
+
+        <div class="form-section">Responsável Interno</div>
+        <div class="form-group"><div class="form-label">Gestor responsável <span>*</span></div><select class="form-input"><option>Rodrigo Schmidt (Admin)</option><option>Ana Lima</option></select></div>
+
+        <div class="form-section">Observações</div>
+        <div class="form-group"><textarea class="form-input" rows="3" placeholder="Notas internas..."></textarea></div>
+      </div>
+    </div>
+    <div class="drawer-footer">
+      <button class="btn btn-secondary" onclick="closeDrawer('drawer-cliente')">Cancelar</button>
+      <button class="btn btn-primary">Cadastrar Cliente</button>
+    </div>
+  </div>
+</div>
+
+<!-- DRAWER: Novo Contato -->
+<div class="drawer-overlay" id="drawer-contato" onclick="closeIfOverlay(event,'drawer-contato')">
+  <div class="drawer" style="width:400px;">
+    <div class="drawer-header">
+      <div><div class="drawer-title">Novo Contato</div><div class="drawer-sub">Adicionar contato à Clínica Sorrisos</div></div>
+      <button class="close-btn" onclick="closeDrawer('drawer-contato')">✕</button>
+    </div>
+    <div class="drawer-body">
+      <div class="form-grid">
+        <div class="form-group"><div class="form-label">Nome completo <span>*</span></div><input class="form-input" placeholder="Nome do contato" /></div>
+        <div class="form-group"><div class="form-label">Papel <span>*</span></div><select class="form-input"><option>Decisor</option><option>Financeiro</option><option>Operacional</option><option>Outro</option></select></div>
+        <div class="form-group"><div class="form-label">Email</div><input class="form-input" placeholder="email@clinica.com.br" /></div>
+        <div class="form-group"><div class="form-label">Telefone</div><input class="form-input" placeholder="(11) 99999-0000" /></div>
+        <div class="form-group" style="flex-direction:row;align-items:center;gap:8px;background:#f8fafc;padding:10px;border-radius:8px;">
+          <input type="checkbox" id="cb-principal" />
+          <label for="cb-principal" style="font-size:13px;cursor:pointer;">Definir como contato principal</label>
+        </div>
+      </div>
+    </div>
+    <div class="drawer-footer">
+      <button class="btn btn-secondary" onclick="closeDrawer('drawer-contato')">Cancelar</button>
+      <button class="btn btn-primary">Salvar Contato</button>
+    </div>
+  </div>
+</div>
+
+<!-- DRAWER: Produto Contratado -->
+<div class="drawer-overlay" id="drawer-produto-contratado" onclick="closeIfOverlay(event,'drawer-produto-contratado')">
+  <div class="drawer" style="width:400px;">
+    <div class="drawer-header">
+      <div><div class="drawer-title">Adicionar Produto</div><div class="drawer-sub">Contratação para Clínica Sorrisos</div></div>
+      <button class="close-btn" onclick="closeDrawer('drawer-produto-contratado')">✕</button>
+    </div>
+    <div class="drawer-body">
+      <div class="form-grid">
+        <div class="form-group"><div class="form-label">Produto do catálogo <span>*</span></div><select class="form-input"><option value="">Selecionar produto...</option><option>Gestão de Tráfego Pago — R$ 2.500</option><option>Gestão de Redes Sociais — R$ 1.800</option><option>SEO e Conteúdo — R$ 1.500</option><option>CRM e Automação — R$ 2.000</option><option>Consultoria de Vendas — R$ 3.000</option><option>Gestão Google Meu Negócio — R$ 800</option></select></div>
+        <div class="form-group"><div class="form-label">Valor negociado (R$) <span>*</span></div><input class="form-input" placeholder="0,00" /><span style="font-size:11px;color:#94a3b8;margin-top:2px;">Valor base: R$ 2.500 — pode ser diferente</span></div>
+        <div class="form-grid form-grid-2">
+          <div class="form-group"><div class="form-label">Tipo</div><select class="form-input"><option>Recorrente</option><option>Pontual</option></select></div>
+          <div class="form-group"><div class="form-label">Periodicidade</div><select class="form-input"><option>Mensal</option><option>Trimestral</option><option>Semestral</option><option>Anual</option></select></div>
+        </div>
+        <div class="form-grid form-grid-2">
+          <div class="form-group"><div class="form-label">Data de início <span>*</span></div><input class="form-input" type="date" /></div>
+          <div class="form-group"><div class="form-label">Data de término</div><input class="form-input" type="date" /><span style="font-size:11px;color:#94a3b8;margin-top:2px;">Deixe vazio para open-end</span></div>
+        </div>
+        <div class="form-group"><div class="form-label">Observações</div><textarea class="form-input" rows="2" placeholder="Notas da contratação..."></textarea></div>
+      </div>
+    </div>
+    <div class="drawer-footer">
+      <button class="btn btn-secondary" onclick="closeDrawer('drawer-produto-contratado')">Cancelar</button>
+      <button class="btn btn-primary">Adicionar Produto</button>
+    </div>
+  </div>
+</div>
+
+<!-- DRAWER: Produto Catálogo -->
+<div class="drawer-overlay" id="drawer-produto-catalogo" onclick="closeIfOverlay(event,'drawer-produto-catalogo')">
+  <div class="drawer" style="width:440px;">
+    <div class="drawer-header">
+      <div><div class="drawer-title">Novo Produto</div><div class="drawer-sub">Adicionar ao catálogo da agência</div></div>
+      <button class="close-btn" onclick="closeDrawer('drawer-produto-catalogo')">✕</button>
+    </div>
+    <div class="drawer-body">
+      <div class="form-grid">
+        <div class="form-group"><div class="form-label">Nome do produto <span>*</span></div><input class="form-input" placeholder="Ex: Gestão de Tráfego Pago" /></div>
+        <div class="form-group"><div class="form-label">Descrição</div><textarea class="form-input" rows="2" placeholder="O que este produto entrega..."></textarea></div>
+        <div class="form-grid form-grid-2">
+          <div class="form-group"><div class="form-label">Categoria <span>*</span></div><select class="form-input"><option value="">Selecionar</option><option>Marketing Digital</option><option>Vendas</option><option>Marketing Local</option></select></div>
+          <div class="form-group"><div class="form-label">Valor base (R$) <span>*</span></div><input class="form-input" placeholder="0,00" /></div>
+        </div>
+        <div class="form-grid form-grid-2">
+          <div class="form-group"><div class="form-label">Tipo <span>*</span></div><select class="form-input"><option>Recorrente</option><option>Pontual</option></select></div>
+          <div class="form-group"><div class="form-label">Periodicidade</div><select class="form-input"><option>Mensal</option><option>Trimestral</option><option>Semestral</option><option>Anual</option><option>N/A (pontual)</option></select></div>
+        </div>
+        <div class="form-group" style="flex-direction:row;align-items:center;gap:8px;background:#f8fafc;padding:10px;border-radius:8px;">
+          <input type="checkbox" id="cb-ativo" checked />
+          <label for="cb-ativo" style="font-size:13px;cursor:pointer;">Produto ativo no catálogo</label>
+        </div>
+      </div>
+    </div>
+    <div class="drawer-footer">
+      <button class="btn btn-secondary" onclick="closeDrawer('drawer-produto-catalogo')">Cancelar</button>
+      <button class="btn btn-primary">Salvar Produto</button>
+    </div>
+  </div>
+</div>
+
+<!-- DRAWER: Novo Contrato -->
+<div class="drawer-overlay" id="drawer-contrato" onclick="closeIfOverlay(event,'drawer-contrato')">
+  <div class="drawer" style="width:440px;">
+    <div class="drawer-header">
+      <div><div class="drawer-title">Novo Contrato</div><div class="drawer-sub">Clínica Sorrisos</div></div>
+      <button class="close-btn" onclick="closeDrawer('drawer-contrato')">✕</button>
+    </div>
+    <div class="drawer-body">
+      <div class="form-grid">
+        <div class="form-group"><div class="form-label">Tipo de contrato</div><select class="form-input"><option>Prestação de Serviços</option><option>Consultoria</option><option>Parceria</option><option>Outro</option></select></div>
+        <div class="form-grid form-grid-2">
+          <div class="form-group"><div class="form-label">Data de início <span>*</span></div><input class="form-input" type="date" /></div>
+          <div class="form-group"><div class="form-label">Data de término</div><input class="form-input" type="date" /></div>
+        </div>
+        <div class="form-group"><div class="form-label">Valor total (R$)</div><input class="form-input" placeholder="0,00" /></div>
+        <div class="form-group"><div class="form-label">Upload do contrato assinado</div><div style="border:2px dashed #e2e8f0;border-radius:8px;padding:20px;text-align:center;background:#f8fafc;cursor:pointer;font-size:13px;color:#94a3b8;">📄 Clique para selecionar PDF<br/><span style="font-size:11px;">Máx 10MB</span></div></div>
+        <div class="form-group"><div class="form-label">Observações</div><textarea class="form-input" rows="2" placeholder="Notas do contrato..."></textarea></div>
+      </div>
+    </div>
+    <div class="drawer-footer">
+      <button class="btn btn-secondary" onclick="closeDrawer('drawer-contrato')">Cancelar</button>
+      <button class="btn btn-primary">Salvar Contrato</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== MODALS ========== -->
+
+<!-- MODAL: Renovação -->
+<div class="modal-overlay" id="modal-renovacao" onclick="closeIfModalOverlay(event,'modal-renovacao')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Renovar Produto</div>
+      <div class="modal-sub">Gestão de Tráfego Pago — Clínica Sorrisos</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:10px;font-size:12px;color:#92400e;">⚠️ Produto vence em <strong>5 dias</strong> (01/04/2026). Renove para evitar interrupção.</div>
+        <div class="form-group"><div class="form-label">Nova data de término <span>*</span></div><input class="form-input" type="date" /></div>
+        <div class="form-group"><div class="form-label">Novo valor mensal (R$)</div><input class="form-input" placeholder="2.500,00" /><span style="font-size:11px;color:#94a3b8;margin-top:2px;">Deixe vazio para manter R$ 2.500</span></div>
+        <div class="form-group"><div class="form-label">Observações</div><input class="form-input" placeholder="Ex: Reajuste de 5% acordado em reunião" /></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-renovacao')">Cancelar</button>
+      <button class="btn btn-primary">Confirmar Renovação</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Registrar Pagamento -->
+<div class="modal-overlay" id="modal-pagamento" onclick="closeIfModalOverlay(event,'modal-pagamento')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Registrar Pagamento</div>
+      <div class="modal-sub">Clínica Sorrisos</div>
+    </div>
+    <div class="modal-body">
+      <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 12px;font-size:12px;color:#991b1b;margin-bottom:12px;">Fatura em aberto: <strong>Fatura Mar/2026 — R$ 4.300</strong> (Tráfego R$ 2.500 + Redes R$ 1.800). Ao confirmar pagamento, o status de inadimplência é atualizado automaticamente.</div>
+      <div class="form-grid">
+        <div class="form-group"><div class="form-label">Vincular à fatura</div><select class="form-input"><option>Fatura Mar/2026 — R$ 4.300 ⚠️ em atraso</option><option>— Pagamento avulso (sem vínculo) —</option></select></div>
+        <div class="form-grid form-grid-2">
+          <div class="form-group"><div class="form-label">Data do pagamento <span>*</span></div><input class="form-input" type="date" /></div>
+          <div class="form-group"><div class="form-label">Valor (R$) <span>*</span></div><input class="form-input" placeholder="4.300,00" /><div style="font-size:10px;color:#94a3b8;margin-top:2px;">Valor da fatura: R$ 4.300</div></div>
+        </div>
+        <div class="form-group"><div class="form-label">Forma de pagamento</div><select class="form-input"><option>PIX</option><option>Boleto</option><option>Cartão</option><option>Transferência</option><option>Outro</option></select></div>
+        <div class="form-group"><div class="form-label">Observações</div><input class="form-input" placeholder="Notas opcionais..." /></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-pagamento')">Cancelar</button>
+      <button class="btn btn-primary">Confirmar Pagamento</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Registrar NPS — FR-64 -->
+<div class="modal-overlay" id="modal-nps" onclick="closeIfModalOverlay(event,'modal-nps')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Registrar NPS / CSAT</div>
+      <div class="modal-sub">Clínica Sorrisos</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <div class="form-label">Nota de satisfação (0–10) <span>*</span></div>
+          <div id="nps-score-grid" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
+            <button type="button" onclick="selectNpsScore(0)"  class="nps-btn nps-red">0</button>
+            <button type="button" onclick="selectNpsScore(1)"  class="nps-btn nps-red">1</button>
+            <button type="button" onclick="selectNpsScore(2)"  class="nps-btn nps-red">2</button>
+            <button type="button" onclick="selectNpsScore(3)"  class="nps-btn nps-red">3</button>
+            <button type="button" onclick="selectNpsScore(4)"  class="nps-btn nps-red">4</button>
+            <button type="button" onclick="selectNpsScore(5)"  class="nps-btn nps-red">5</button>
+            <button type="button" onclick="selectNpsScore(6)"  class="nps-btn nps-amber">6</button>
+            <button type="button" onclick="selectNpsScore(7)"  class="nps-btn nps-amber">7</button>
+            <button type="button" onclick="selectNpsScore(8)"  class="nps-btn nps-amber">8</button>
+            <button type="button" onclick="selectNpsScore(9)"  class="nps-btn nps-green">9</button>
+            <button type="button" onclick="selectNpsScore(10)" class="nps-btn nps-green">10</button>
+          </div>
+          <div id="nps-label" style="font-size:11px;font-weight:600;margin-top:6px;height:16px;"></div>
+          <div style="font-size:10px;color:#94a3b8;margin-top:2px;">🔴 Detrator (0–6) · 🟡 Neutro (7–8) · 🟢 Promotor (9–10)</div>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Data da coleta <span>*</span></div>
+          <input class="form-input" type="date" />
+        </div>
+        <div class="form-group">
+          <div class="form-label">Observação</div>
+          <textarea class="form-input" rows="3" placeholder="Contexto da avaliação, o que o cliente disse..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-nps')">Cancelar</button>
+      <button class="btn btn-primary">Salvar NPS</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Desativar Cliente — FR-03b -->
+<div class="modal-overlay" id="modal-desativar-cliente" onclick="closeIfModalOverlay(event,'modal-desativar-cliente')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Desativar Cliente</div>
+      <div class="modal-sub">Clínica Sorrisos</div>
+    </div>
+    <div class="modal-body">
+      <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:10px 12px;font-size:12px;color:#92400e;margin-bottom:14px;">
+        ⚠️ Ao desativar, o cliente ficará com status <strong>Inativo</strong>. As entregas serão suspensas visualmente. A reativação só poderá ser feita manualmente.
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <div class="form-label">Motivo da desativação <span>*</span></div>
+          <select class="form-input">
+            <option value="">Selecione o motivo...</option>
+            <option>Solicitação do cliente</option>
+            <option>Negociação em andamento</option>
+            <option>Insatisfação com serviço</option>
+            <option>Encerramento de negócio</option>
+            <option>Outro</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Descrição <span>*</span></div>
+          <textarea class="form-input" rows="3" placeholder="Descreva o contexto da desativação..."></textarea>
+        </div>
+      </div>
+      <div style="font-size:11px;color:#94a3b8;margin-top:8px;">Esta ação será registrada no histórico de status com data, usuário e motivo.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-desativar-cliente')">Cancelar</button>
+      <button class="btn btn-danger">Confirmar Desativação</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Convidar Usuário -->
+<div class="modal-overlay" id="modal-convite" onclick="closeIfModalOverlay(event,'modal-convite')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Convidar Usuário</div>
+      <div class="modal-sub">O usuário receberá um link de acesso por email</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><div class="form-label">Nome completo <span>*</span></div><input class="form-input" placeholder="Nome do usuário" /></div>
+        <div class="form-group"><div class="form-label">Email <span>*</span></div><input class="form-input" placeholder="email@agencia.com" /></div>
+        <div class="form-group"><div class="form-label">Role <span>*</span></div>
+          <select class="form-input"><option>Gestor</option><option>Admin</option></select>
+          <span style="font-size:11px;color:#94a3b8;margin-top:4px;">Gestor vê apenas seus próprios clientes. Admin tem acesso total.</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-convite')">Cancelar</button>
+      <button class="btn btn-primary">Enviar Convite</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const screenTitles = {
+  dashboard: 'Dashboard',
+  clientes: 'Clientes',
+  'perfil-cliente': 'Clínica Sorrisos',
+  'produtos-catalogo': 'Catálogo de Produtos',
+  contratos: 'Contratos',
+  financeiro: 'Financeiro',
+  documentos: 'Documentos',
+  usuarios: 'Usuários',
+  configuracoes: 'Configurações'
+};
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const screen = document.getElementById('screen-' + id);
+  if (screen) screen.classList.add('active');
+  document.getElementById('topbar-title').textContent = screenTitles[id] || id;
+  // highlight nav
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.getAttribute('onclick') && n.getAttribute('onclick').includes("'" + id + "'")) n.classList.add('active');
+  });
+}
+
+function switchTab(el, tabId) {
+  el.parentElement.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+  const tab = document.getElementById(tabId);
+  if (tab) tab.style.display = 'block';
+}
+
+function openDrawer(id) { document.getElementById(id).classList.add('open'); }
+function closeDrawer(id) { document.getElementById(id).classList.remove('open'); }
+function closeIfOverlay(e, id) { if (e.target === document.getElementById(id)) closeDrawer(id); }
+
+function selectNpsScore(n) {
+  const btns = document.querySelectorAll('#nps-score-grid .nps-btn');
+  btns.forEach(b => b.classList.remove('selected'));
+  btns[n].classList.add('selected');
+  const label = document.getElementById('nps-label');
+  const zones = { red: 'Detrator', amber: 'Neutro', green: 'Promotor' };
+  const colors = { red: '#dc2626', amber: '#d97706', green: '#16a34a' };
+  const zone = n <= 6 ? 'red' : n <= 8 ? 'amber' : 'green';
+  label.textContent = n + ' — ' + zones[zone];
+  label.style.color = colors[zone];
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function closeIfModalOverlay(e, id) { if (e.target === document.getElementById(id)) closeModal(id); }
+
+// Filter tabs
+function setFilterTab(el) {
+  el.closest('.filter-tabs').querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// Keyboard ESC
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.drawer-overlay.open').forEach(d => d.classList.remove('open'));
+    document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+  }
+});
+</script>
+</body>
+</html>

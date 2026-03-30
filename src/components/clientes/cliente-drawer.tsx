@@ -79,7 +79,7 @@ export function ClienteDrawer({ open, onClose, cliente, responsaveis }: ClienteD
             <section>
               <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Dados da clínica</h3>
               <div className="space-y-3">
-                <Field label="Nome da clínica *" name="nome" defaultValue={cliente?.nome} placeholder="Clínica Exemplo" />
+                <Field label="Nome da clínica *" name="nome" defaultValue={cliente?.razao_social} placeholder="Clínica Exemplo" />
                 <Field label="CNPJ" name="cnpj" defaultValue={cliente?.cnpj ?? ''} placeholder="00.000.000/0001-00" />
                 <div className="grid grid-cols-2 gap-3">
                   <SelectField label="Segmento" name="segmento" defaultValue={cliente?.segmento ?? ''} options={segmentoOptions} />
@@ -92,12 +92,12 @@ export function ClienteDrawer({ open, onClose, cliente, responsaveis }: ClienteD
             <section>
               <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Endereço</h3>
               <div className="space-y-3">
-                <Field label="Logradouro" name="endereco_logradouro" defaultValue={cliente?.endereco_logradouro ?? ''} placeholder="Rua, número, bairro" />
+                <Field label="Logradouro" name="endereco_logradouro" defaultValue={cliente?.logradouro ?? ''} placeholder="Rua, número, bairro" />
                 <div className="grid grid-cols-2 gap-3">
-                  <Field label="Cidade" name="endereco_cidade" defaultValue={cliente?.endereco_cidade ?? ''} placeholder="São Paulo" />
-                  <Field label="Estado" name="endereco_estado" defaultValue={cliente?.endereco_estado ?? ''} placeholder="SP" />
+                  <Field label="Cidade" name="endereco_cidade" defaultValue={cliente?.cidade ?? ''} placeholder="São Paulo" />
+                  <Field label="Estado" name="endereco_estado" defaultValue={cliente?.uf ?? ''} placeholder="SP" />
                 </div>
-                <Field label="CEP" name="endereco_cep" defaultValue={cliente?.endereco_cep ?? ''} placeholder="00000-000" />
+                <Field label="CEP" name="endereco_cep" defaultValue={cliente?.cep ?? ''} placeholder="00000-000" />
               </div>
             </section>
 
@@ -133,7 +133,7 @@ export function ClienteDrawer({ open, onClose, cliente, responsaveis }: ClienteD
                   <label className="mb-1.5 block text-sm font-medium text-slate-700">Responsável interno</label>
                   <select
                     name="responsavel_interno_id"
-                    defaultValue={cliente?.responsavel_interno_id ?? ''}
+                    defaultValue={cliente?.responsavel_id ?? ''}
                     className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   >
                     <option value="">Sem responsável</option>

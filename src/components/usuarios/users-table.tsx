@@ -83,7 +83,7 @@ function UserRow({ user, isSelf }: { user: Profile; isSelf: boolean }) {
           value={user.role}
           disabled={isSelf || isPending}
           onChange={(e) => handleRoleChange(e.target.value as UserRole)}
-          className={`rounded-lg border-0 px-2.5 py-1 text-xs font-medium focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed ${roleBadge[user.role]}`}
+          className={`rounded-lg border-0 px-2.5 py-1 text-xs font-medium focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed ${roleBadge[user.role as UserRole] ?? roleBadge.operacional}`}
         >
           <option value="admin">Admin</option>
           <option value="gestor">Gestor</option>

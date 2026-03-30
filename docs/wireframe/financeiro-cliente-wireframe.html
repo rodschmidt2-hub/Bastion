@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bastion — Tab Financeiro do Cliente (Wireframe)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f1f5f9; color: #1e293b; }
+
+  .page { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+
+  /* HEADER SIMULADO */
+  .page-context { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 16px; }
+  .avatar-lg { width: 48px; height: 48px; border-radius: 10px; background: #eff6ff; border: 1px solid #bfdbfe; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; color: #2563eb; flex-shrink: 0; }
+  .context-name { font-size: 18px; font-weight: 700; color: #0f172a; }
+  .context-meta { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+
+  /* TABS */
+  .tabs-nav { display: flex; border-bottom: 2px solid #e2e8f0; margin-bottom: 24px; gap: 2px; }
+  .tab { padding: 10px 18px; font-size: 13px; font-weight: 500; color: #94a3b8; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; transition: all .15s; }
+  .tab:hover { color: #475569; background: #f8fafc; }
+  .tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+
+  /* SEÇÃO TOPO — PRÓXIMA COBRANÇA + NOTAS */
+  .top-strip { display: grid; grid-template-columns: 1fr 1fr 1fr 1.4fr; gap: 14px; margin-bottom: 20px; }
+
+  .kpi-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 18px; }
+  .kpi-card.alert { border-color: #fca5a5; background: #fff5f5; }
+  .kpi-card.warn { border-color: #fcd34d; background: #fffbeb; }
+  .kpi-card.highlight { border-color: #bfdbfe; background: #eff6ff; }
+  .kpi-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .7px; margin-bottom: 6px; }
+  .kpi-value { font-size: 22px; font-weight: 800; color: #0f172a; line-height: 1; }
+  .kpi-value.blue { color: #2563eb; }
+  .kpi-value.red { color: #dc2626; }
+  .kpi-value.green { color: #16a34a; }
+  .kpi-value.amber { color: #d97706; }
+  .kpi-sub { font-size: 11px; color: #94a3b8; margin-top: 4px; }
+  .kpi-sub.urgent { color: #dc2626; font-weight: 600; }
+  .kpi-sub.ok { color: #16a34a; }
+
+  /* NOTAS CARD */
+  .notas-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+  .notas-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .7px; }
+  .notas-input { flex: 1; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 8px 10px; font-size: 12px; color: #475569; background: #f8fafc; min-height: 52px; line-height: 1.5; }
+  .notas-hint { font-size: 10px; color: #cbd5e1; }
+
+  /* LAYOUT PRINCIPAL */
+  .main-grid { display: grid; grid-template-columns: 1fr 340px; gap: 16px; align-items: start; }
+
+  /* SEÇÃO: TIMELINE */
+  .section-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; margin-bottom: 16px; }
+  .section-header { padding: 14px 18px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; gap: 10px; }
+  .section-title { font-size: 13px; font-weight: 700; color: #0f172a; flex: 1; }
+  .section-body { padding: 0 18px; }
+
+  /* TIMELINE */
+  .timeline { padding: 6px 0; }
+  .tl-item { display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px solid #f8fafc; position: relative; }
+  .tl-item:last-child { border-bottom: none; }
+  .tl-dot-col { display: flex; flex-direction: column; align-items: center; gap: 0; width: 20px; flex-shrink: 0; padding-top: 3px; }
+  .tl-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .tl-dot.green { background: #22c55e; }
+  .tl-dot.red { background: #ef4444; }
+  .tl-dot.amber { background: #f59e0b; }
+  .tl-dot.blue { background: #3b82f6; }
+  .tl-dot.slate { background: #94a3b8; }
+  .tl-line { width: 2px; flex: 1; background: #f1f5f9; margin-top: 4px; }
+  .tl-content { flex: 1; }
+  .tl-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+  .tl-event { font-size: 13px; font-weight: 600; color: #1e293b; }
+  .tl-amount { font-size: 13px; font-weight: 700; color: #0f172a; white-space: nowrap; }
+  .tl-amount.neg { color: #dc2626; }
+  .tl-meta { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+  .tl-badge { display: inline-flex; align-items: center; padding: 1px 7px; border-radius: 20px; font-size: 10px; font-weight: 700; margin-left: 6px; vertical-align: middle; }
+  .tl-badge.paga { background: #f0fdf4; color: #16a34a; }
+  .tl-badge.atraso { background: #fef2f2; color: #dc2626; }
+  .tl-badge.pendente { background: #fffbeb; color: #d97706; }
+  .tl-badge.estorno { background: #f8fafc; color: #64748b; }
+  .tl-badge.renovacao { background: #eff6ff; color: #2563eb; }
+  .tl-badge.reajuste { background: #f5f3ff; color: #7c3aed; }
+
+  /* COBRANÇAS */
+  .cobranca-row { display: flex; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 1px solid #f8fafc; }
+  .cobranca-row:last-child { border-bottom: none; }
+  .cb-status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .cb-ref { flex: 1; }
+  .cb-ref-title { font-size: 13px; font-weight: 500; color: #1e293b; }
+  .cb-ref-meta { font-size: 11px; color: #94a3b8; }
+  .cb-venc { font-size: 11px; color: #94a3b8; white-space: nowrap; }
+  .cb-valor { font-size: 13px; font-weight: 700; color: #0f172a; white-space: nowrap; }
+  .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+  .badge-green { background: #f0fdf4; color: #16a34a; }
+  .badge-red { background: #fef2f2; color: #dc2626; }
+  .badge-amber { background: #fffbeb; color: #d97706; }
+  .badge-blue { background: #eff6ff; color: #2563eb; }
+  .badge-slate { background: #f8fafc; color: #64748b; }
+  .btn { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; border: none; transition: all .15s; }
+  .btn-primary { background: #2563eb; color: white; }
+  .btn-primary:hover { background: #1d4ed8; }
+  .btn-secondary { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+  .btn-secondary:hover { background: #e2e8f0; }
+  .btn-ghost { background: transparent; color: #94a3b8; border: 1px solid #e2e8f0; }
+  .btn-ghost:hover { background: #f8fafc; color: #475569; }
+
+  /* SIDEBAR DIREITA */
+  .sidebar-right { display: flex; flex-direction: column; gap: 14px; }
+
+  /* MRR CHART */
+  .mrr-chart-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 18px; }
+  .mrr-chart-header { display: flex; align-items: center; margin-bottom: 14px; }
+  .mrr-chart-title { font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .7px; flex: 1; }
+  .mrr-chart-value { font-size: 18px; font-weight: 800; color: #2563eb; }
+  .mrr-bars { display: flex; align-items: flex-end; gap: 5px; height: 72px; margin-bottom: 6px; }
+  .mrr-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .mrr-bar { width: 100%; border-radius: 4px 4px 0 0; transition: all .3s; }
+  .mrr-bar.current { background: #2563eb; }
+  .mrr-bar.past { background: #bfdbfe; }
+  .mrr-month { font-size: 9px; color: #94a3b8; }
+  .mrr-amount { font-size: 9px; color: #475569; font-weight: 600; }
+  .mrr-trend { display: flex; align-items: center; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid #f1f5f9; font-size: 11px; }
+  .trend-up { color: #16a34a; font-weight: 700; }
+  .trend-desc { color: #94a3b8; }
+
+  /* PONTUALIDADE */
+  .pontualidade-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 18px; }
+  .pont-header { display: flex; align-items: center; margin-bottom: 12px; }
+  .pont-title { font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .7px; flex: 1; }
+  .pont-score { font-size: 20px; font-weight: 800; }
+  .pont-grid { display: flex; gap: 3px; flex-wrap: wrap; }
+  .pont-dot { width: 18px; height: 18px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 700; color: white; }
+  .pont-dot.ok { background: #22c55e; }
+  .pont-dot.late { background: #ef4444; }
+  .pont-dot.future { background: #f1f5f9; }
+  .pont-legend { display: flex; gap: 12px; margin-top: 8px; font-size: 10px; color: #94a3b8; }
+  .pont-leg-item { display: flex; align-items: center; gap: 4px; }
+  .pont-leg-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+  /* RESUMO ANUAL */
+  .resumo-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 18px; }
+  .resumo-title { font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .7px; margin-bottom: 12px; }
+  .resumo-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid #f8fafc; font-size: 13px; }
+  .resumo-row:last-child { border-bottom: none; }
+  .resumo-label { color: #64748b; }
+  .resumo-value { font-weight: 700; color: #0f172a; }
+  .resumo-diff { font-size: 11px; color: #16a34a; font-weight: 600; margin-left: 4px; }
+  .resumo-diff.neg { color: #dc2626; }
+
+  /* PRÓXIMA COBRANÇA CARD DETALHADO */
+  .proxima-card { background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%); border: 1px solid #bfdbfe; border-radius: 12px; padding: 16px 18px; }
+  .proxima-title { font-size: 10px; font-weight: 700; color: #3b82f6; text-transform: uppercase; letter-spacing: .7px; margin-bottom: 8px; }
+  .proxima-date { font-size: 20px; font-weight: 800; color: #1d4ed8; }
+  .proxima-valor { font-size: 26px; font-weight: 800; color: #0f172a; margin: 4px 0; }
+  .proxima-items { margin-top: 10px; display: flex; flex-direction: column; gap: 4px; }
+  .proxima-item { display: flex; justify-content: space-between; font-size: 12px; color: #475569; padding: 4px 8px; background: white; border-radius: 6px; }
+  .proxima-item-val { font-weight: 600; color: #0f172a; }
+
+  /* FILTER TABS */
+  .filter-tabs { display: flex; gap: 4px; margin-bottom: 2px; }
+  .filter-tab { padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; border: 1px solid #e2e8f0; background: white; color: #64748b; transition: all .15s; }
+  .filter-tab:hover { background: #f8fafc; }
+  .filter-tab.active { background: #0f172a; color: white; border-color: #0f172a; }
+
+  /* ANNOTATION */
+  .ann { display: inline-flex; align-items: center; gap: 3px; background: #fef9c3; border: 1px solid #fde047; border-radius: 5px; padding: 2px 6px; font-size: 10px; color: #854d0e; font-weight: 600; vertical-align: middle; margin-left: 6px; }
+
+  /* DIVIDER */
+  hr { border: none; border-top: 1px solid #f1f5f9; margin: 0; }
+
+  /* MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 200; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: white; border-radius: 14px; width: 420px; box-shadow: 0 20px 60px rgba(0,0,0,.15); overflow: hidden; }
+  .modal-header { padding: 20px 24px 0; }
+  .modal-title { font-size: 16px; font-weight: 700; color: #0f172a; }
+  .modal-sub { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+  .modal-body { padding: 16px 24px; }
+  .modal-footer { padding: 12px 24px 20px; display: flex; gap: 8px; justify-content: flex-end; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+  .form-label { font-size: 12px; font-weight: 600; color: #374151; }
+  .form-label span { color: #dc2626; }
+  .form-input { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; font-size: 13px; color: #475569; width: 100%; }
+  .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .form-hint { font-size: 10px; color: #94a3b8; margin-top: 2px; }
+  .info-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 10px 12px; font-size: 12px; color: #92400e; margin-bottom: 12px; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 3px; }
+
+  /* PAGE TITLE */
+  .page-title-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+  .page-title-bar h1 { font-size: 22px; font-weight: 800; color: #0f172a; }
+  .page-title-bar .subtitle { font-size: 13px; color: #94a3b8; }
+  .version-badge { background: #f5f3ff; color: #7c3aed; border: 1px solid #ddd6fe; border-radius: 6px; padding: 3px 10px; font-size: 11px; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER DA PÁGINA -->
+  <div class="page-title-bar">
+    <div>
+      <h1>Tab: Financeiro do Cliente <span class="version-badge">v2 — FR-55 a FR-62</span></h1>
+      <div class="subtitle">Wireframe interativo — clique nos botões para ver os modais</div>
+    </div>
+  </div>
+
+  <!-- CONTEXTO DO CLIENTE (simula header do perfil) -->
+  <div class="page-context">
+    <div class="avatar-lg">CS</div>
+    <div style="flex:1;">
+      <div class="context-name">Clínica Sorrisos <span class="badge badge-red" style="font-size:11px;vertical-align:middle;margin-left:6px;">Inadimplente · 12 dias</span></div>
+      <div class="context-meta">CNPJ 12.345.678/0001-99 · São Paulo, SP · Responsável: Rodrigo Schmidt</div>
+    </div>
+    <div class="tabs-nav" style="border:none;margin:0;">
+      <div class="tab">Dados</div>
+      <div class="tab">Produtos</div>
+      <div class="tab">Contratos</div>
+      <div class="tab active">Financeiro</div>
+      <div class="tab">Documentos</div>
+    </div>
+  </div>
+
+  <!-- FAIXA TOPO: KPIs + Próxima Cobrança + Notas -->
+  <div class="top-strip">
+
+    <!-- KPI: LTV -->
+    <div class="kpi-card">
+      <div class="kpi-label">LTV Acumulado</div>
+      <div class="kpi-value">R$ 42.800</div>
+      <div class="kpi-sub">Desde Jan/2025 (15 meses)</div>
+    </div>
+
+    <!-- KPI: Em Aberto -->
+    <div class="kpi-card alert">
+      <div class="kpi-label">Em Aberto</div>
+      <div class="kpi-value red">R$ 4.300</div>
+      <div class="kpi-sub urgent">2 cobranças · 12 dias de atraso</div>
+    </div>
+
+    <!-- KPI: Resumo Anual -->
+    <div class="kpi-card">
+      <div class="kpi-label">Pago em 2026</div>
+      <div class="kpi-value green">R$ 8.600</div>
+      <div class="kpi-sub ok">↑ vs R$ 6.400 em 2025</div>
+    </div>
+
+    <!-- NOTAS FINANCEIRAS — FR-62 -->
+    <div class="notas-card">
+      <div class="notas-label">Notas Financeiras <span class="ann">FR-62</span></div>
+      <div class="notas-input">"Cliente paga sempre na segunda quinzena. Negociou parcelamento em 2× para Mar/26."</div>
+      <div class="notas-hint">Visível apenas internamente — não aparece para o cliente</div>
+    </div>
+
+  </div>
+
+  <!-- PRÓXIMA COBRANÇA (faixa destaque) — FR-57 -->
+  <div style="background:linear-gradient(90deg,#1e40af 0%,#2563eb 100%);border-radius:12px;padding:14px 20px;margin-bottom:20px;display:flex;align-items:center;gap:20px;color:white;">
+    <div>
+      <div style="font-size:10px;font-weight:700;opacity:.7;text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px;">Próxima Cobrança Prevista <span style="background:rgba(255,255,255,.2);padding:1px 6px;border-radius:4px;font-size:9px;">FR-57</span></div>
+      <div style="font-size:26px;font-weight:800;">R$ 4.300</div>
+      <div style="font-size:12px;opacity:.8;margin-top:2px;">Tráfego Pago R$ 2.500 + Redes Sociais R$ 1.800</div>
+    </div>
+    <div style="text-align:center;background:rgba(255,255,255,.15);border-radius:10px;padding:10px 16px;">
+      <div style="font-size:10px;opacity:.7;text-transform:uppercase;letter-spacing:.5px;">Vencimento</div>
+      <div style="font-size:20px;font-weight:800;">15/04/2026</div>
+      <div style="font-size:11px;opacity:.7;">em 19 dias</div>
+    </div>
+    <div style="margin-left:auto;display:flex;flex-direction:column;gap:6px;">
+      <button class="btn" style="background:white;color:#1d4ed8;font-weight:600;" onclick="openModal('modal-pagamento')">+ Registrar Pagamento</button>
+      <button class="btn" style="background:rgba(255,255,255,.15);color:white;border:1px solid rgba(255,255,255,.3);">Gerar Cobrança Avulsa</button>
+    </div>
+  </div>
+
+  <!-- GRID PRINCIPAL -->
+  <div class="main-grid">
+
+    <!-- COLUNA ESQUERDA -->
+    <div>
+
+      <!-- TIMELINE FINANCEIRA UNIFICADA — FR-55 -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-title">Timeline Financeira <span class="ann">FR-55</span></div>
+          <div class="filter-tabs">
+            <div class="filter-tab active">Todos</div>
+            <div class="filter-tab">Cobranças</div>
+            <div class="filter-tab">Pagamentos</div>
+            <div class="filter-tab">Renovações</div>
+          </div>
+          <button class="btn btn-secondary" style="margin-left:8px;font-size:11px;" onclick="openModal('modal-pagamento')">+ Registrar</button>
+        </div>
+        <div class="section-body">
+          <div class="timeline">
+
+            <!-- MARÇO 2026 (em atraso) -->
+            <div style="padding:8px 0 4px;font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid #f1f5f9;margin-bottom:4px;">Março 2026</div>
+
+            <div class="tl-item">
+              <div class="tl-dot-col"><div class="tl-dot red"></div><div class="tl-line"></div></div>
+              <div class="tl-content">
+                <div class="tl-top">
+                  <div><span class="tl-event">Cobrança gerada — Tráfego Pago</span><span class="tl-badge atraso">Em atraso · 12d</span></div>
+                  <div class="tl-amount neg">R$ 2.500</div>
+                </div>
+                <div class="tl-meta">Venceu 15/03/2026 · Produto recorrente mensal</div>
+                <div style="margin-top:6px;"><button class="btn btn-primary" style="font-size:11px;padding:4px 10px;" onclick="openModal('modal-pagamento')">Quitar cobrança</button></div>
+              </div>
+            </div>
+
+            <div class="tl-item">
+              <div class="tl-dot-col"><div class="tl-dot red"></div><div class="tl-line"></div></div>
+              <div class="tl-content">
+                <div class="tl-top">
+                  <div><span class="tl-event">Cobrança gerada — Redes Sociais</span><span class="tl-badge atraso">Em atraso · 12d</span></div>
+                  <div class="tl-amount neg">R$ 1.800</div>
+                </div>
+                <div class="tl-meta">Venceu 15/03/2026 · Produto recorrente mensal</div>
+                <div style="margin-top:6px;"><button class="btn btn-primary" style="font-size:11px;padding:4px 10px;" onclick="openModal('modal-pagamento')">Quitar cobrança</button></div>
+              </div>
+            </div>
+
+            <!-- FEVEREIRO 2026 -->
+            <div style="padding:8px 0 4px;font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid #f1f5f9;margin-bottom:4px;margin-top:8px;">Fevereiro 2026</div>
+
+            <div class="tl-item">
+              <div class="tl-dot-col"><div class="tl-dot green"></div><div class="tl-line"></div></div>
+              <div class="tl-content">
+                <div class="tl-top">
+                  <div><span class="tl-event">Pagamento recebido — Tráfego Pago</span><span class="tl-badge paga">Pago em dia</span></div>
+                  <div class="tl-amount" style="color:#16a34a;">+ R$ 2.500</div>
+                </div>
+                <div class="tl-meta">18/02/2026 · PIX · Ref: Fev/2026</div>
+              </div>
+            </div>
+
+            <div class="tl-item">
+              <div class="tl-dot-col"><div class="tl-dot green"></div><div class="tl-line"></div></div>
+              <div class="tl-content">
+                <div class="tl-top">
+                  <div><span class="tl-event">Pagamento recebido — Redes Sociais</span><span class="tl-badge paga">Pago em dia</span></div>
+                  <div class="tl-amount" style="color:#16a34a;">+ R$ 1.800</div>
+                </div>
+                <div class="tl-meta">18/02/2026 · PIX · Ref: Fev/2026</div>
+              </div>
+            </div>
+
+            <div class="tl-item">
+              <div class="tl-dot-col"><div class="tl-dot blue"></div><div class="tl-line"></div></div>
+              <div class="tl-content">
+                <div class="tl-top">
+                  <div><span class="tl-event">Renovação — Redes Sociais</span><span class="tl-badge renovacao">Renovado 6 meses</span></div>
+                  <div></div>
+                </div>
+                <div class="tl-meta">01/02/2026 · Renovado até 01/08/2026 · R$ 1.800/mês (sem reajuste)</div>
+              </div>
+            </div>
+
+            <!-- JANEIRO 2026 -->
+            <div style="padding:8px 0 4px;font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid #f1f5f9;margin-bottom:4px;margin-top:8px;">Janeiro 2026</div>
+
+            <div class="tl-item">
+              <div class="tl-dot-col"><div class="tl-dot green"></div><div class="tl-line"></div></div>
+              <div class="tl-content">
+                <div class="tl-top">
+                  <div><span class="tl-event">Pagamento recebido — Tráfego Pago</span><span class="tl-badge paga">Pago em dia</span></div>
+                  <div class="tl-amount" style="color:#16a34a;">+ R$ 2.500</div>
+                </div>
+                <div class="tl-meta">16/01/2026 · PIX · Ref: Jan/2026</div>
+              </div>
+            </div>
+
+            <div class="tl-item">
+              <div class="tl-dot-col"><div class="tl-dot blue"></div><div class="tl-line"></div></div>
+              <div class="tl-content">
+                <div class="tl-top">
+                  <div><span class="tl-event">Renovação + Reajuste — Tráfego Pago</span><span class="tl-badge reajuste">+8% reajuste</span></div>
+                  <div></div>
+                </div>
+                <div class="tl-meta">01/01/2026 · R$ 2.315 → R$ 2.500 (+8,0%) · Renovado 12 meses</div>
+              </div>
+            </div>
+
+            <!-- DEZEMBRO 2025 -->
+            <div style="padding:8px 0 4px;font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid #f1f5f9;margin-bottom:4px;margin-top:8px;">Dezembro 2025</div>
+
+            <div class="tl-item">
+              <div class="tl-dot-col"><div class="tl-dot amber"></div><div class="tl-line"></div></div>
+              <div class="tl-content">
+                <div class="tl-top">
+                  <div><span class="tl-event">Pagamento recebido — Tráfego Pago</span><span class="tl-badge pendente">Pago com atraso</span></div>
+                  <div class="tl-amount" style="color:#16a34a;">+ R$ 2.315</div>
+                </div>
+                <div class="tl-meta">22/12/2025 · Boleto · Ref: Dez/2025 · Venceu 15/12/2025 (7 dias atraso)</div>
+              </div>
+            </div>
+
+            <div class="tl-item" style="border:none;">
+              <div class="tl-dot-col"><div class="tl-dot slate"></div></div>
+              <div class="tl-content">
+                <div style="font-size:12px;color:#94a3b8;font-style:italic;">+ 9 eventos anteriores</div>
+                <button class="btn btn-ghost" style="margin-top:4px;font-size:11px;">Carregar mais →</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- COLUNA DIREITA (sidebar) -->
+    <div class="sidebar-right">
+
+      <!-- MRR DO CLIENTE MÊS A MÊS — FR-59 -->
+      <div class="mrr-chart-card">
+        <div class="mrr-chart-header">
+          <div class="mrr-chart-title">MRR do Cliente <span class="ann">FR-59</span></div>
+          <div class="mrr-chart-value">R$ 4.300</div>
+        </div>
+        <div class="mrr-bars">
+          <div class="mrr-bar-wrap">
+            <div class="mrr-amount">1.8k</div>
+            <div class="mrr-bar past" style="height:28px;"></div>
+            <div class="mrr-month">Set</div>
+          </div>
+          <div class="mrr-bar-wrap">
+            <div class="mrr-amount">1.8k</div>
+            <div class="mrr-bar past" style="height:28px;"></div>
+            <div class="mrr-month">Out</div>
+          </div>
+          <div class="mrr-bar-wrap">
+            <div class="mrr-amount">1.8k</div>
+            <div class="mrr-bar past" style="height:28px;"></div>
+            <div class="mrr-month">Nov</div>
+          </div>
+          <div class="mrr-bar-wrap">
+            <div class="mrr-amount">2.3k</div>
+            <div class="mrr-bar past" style="height:36px;"></div>
+            <div class="mrr-month">Dez</div>
+          </div>
+          <div class="mrr-bar-wrap">
+            <div class="mrr-amount">2.5k</div>
+            <div class="mrr-bar past" style="height:39px;"></div>
+            <div class="mrr-month">Jan</div>
+          </div>
+          <div class="mrr-bar-wrap">
+            <div class="mrr-amount">4.3k</div>
+            <div class="mrr-bar past" style="height:67px;"></div>
+            <div class="mrr-month">Fev</div>
+          </div>
+          <div class="mrr-bar-wrap">
+            <div class="mrr-amount" style="color:#2563eb;">4.3k</div>
+            <div class="mrr-bar current" style="height:67px;"></div>
+            <div class="mrr-month" style="color:#2563eb;font-weight:700;">Mar</div>
+          </div>
+        </div>
+        <div class="mrr-trend">
+          <span class="trend-up">↑ +139%</span>
+          <span class="trend-desc">vs 6 meses atrás · Adicionou Tráfego em Jan</span>
+        </div>
+      </div>
+
+      <!-- TAXA DE PONTUALIDADE — FR-60 -->
+      <div class="pontualidade-card">
+        <div class="pont-header">
+          <div class="pont-title">Pontualidade <span class="ann">FR-60</span></div>
+          <div class="pont-score" style="color:#d97706;">73%</div>
+        </div>
+        <div style="font-size:11px;color:#64748b;margin-bottom:10px;">Últimos 15 pagamentos</div>
+        <div class="pont-grid">
+          <div class="pont-dot ok" title="Jan/25">✓</div>
+          <div class="pont-dot ok" title="Fev/25">✓</div>
+          <div class="pont-dot late" title="Mar/25" style="background:#f59e0b;">!</div>
+          <div class="pont-dot ok" title="Abr/25">✓</div>
+          <div class="pont-dot ok" title="Mai/25">✓</div>
+          <div class="pont-dot ok" title="Jun/25">✓</div>
+          <div class="pont-dot late" title="Jul/25">✗</div>
+          <div class="pont-dot ok" title="Ago/25">✓</div>
+          <div class="pont-dot ok" title="Set/25">✓</div>
+          <div class="pont-dot ok" title="Out/25">✓</div>
+          <div class="pont-dot ok" title="Nov/25">✓</div>
+          <div class="pont-dot late" title="Dez/25" style="background:#f59e0b;">!</div>
+          <div class="pont-dot ok" title="Jan/26">✓</div>
+          <div class="pont-dot ok" title="Fev/26">✓</div>
+          <div class="pont-dot late" title="Mar/26 — em atraso">✗</div>
+        </div>
+        <div class="pont-legend">
+          <div class="pont-leg-item"><div class="pont-leg-dot" style="background:#22c55e;"></div> Em dia (11)</div>
+          <div class="pont-leg-item"><div class="pont-leg-dot" style="background:#f59e0b;"></div> Atrasado (2)</div>
+          <div class="pont-leg-item"><div class="pont-leg-dot" style="background:#ef4444;"></div> Não pago (2)</div>
+        </div>
+      </div>
+
+      <!-- RESUMO ANUAL — FR-58 -->
+      <div class="resumo-card">
+        <div class="resumo-title">Resumo Anual <span class="ann">FR-58</span></div>
+        <div class="resumo-row">
+          <span class="resumo-label">Pago em 2026</span>
+          <span class="resumo-value">R$ 8.600 <span class="resumo-diff">↑ +34%</span></span>
+        </div>
+        <div class="resumo-row">
+          <span class="resumo-label">Pago em 2025</span>
+          <span class="resumo-value" style="color:#64748b;font-weight:500;">R$ 6.400</span>
+        </div>
+        <div class="resumo-row">
+          <span class="resumo-label">LTV Total</span>
+          <span class="resumo-value">R$ 42.800</span>
+        </div>
+        <div class="resumo-row">
+          <span class="resumo-label">Ticket médio mensal</span>
+          <span class="resumo-value">R$ 2.853</span>
+        </div>
+        <div class="resumo-row" style="border:none;">
+          <span class="resumo-label">Cliente há</span>
+          <span class="resumo-value">15 meses</span>
+        </div>
+      </div>
+
+      <!-- HISTÓRICO DE REAJUSTES — FR-61 -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-title">Histórico de Reajustes <span class="ann">FR-61</span></div>
+        </div>
+        <div class="section-body" style="padding:10px 18px;">
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="background:#f8fafc;border-radius:8px;padding:10px 12px;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div style="font-size:12px;font-weight:600;color:#1e293b;">Tráfego Pago — Jan/2026</div>
+                <div style="font-size:13px;font-weight:800;color:#7c3aed;">+8,0%</div>
+              </div>
+              <div style="font-size:11px;color:#94a3b8;margin-top:2px;">R$ 2.315 → R$ 2.500 · Renovação 12m</div>
+            </div>
+            <div style="background:#f8fafc;border-radius:8px;padding:10px 12px;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div style="font-size:12px;font-weight:600;color:#1e293b;">Redes Sociais — Jun/2025</div>
+                <div style="font-size:13px;font-weight:800;color:#7c3aed;">+5,0%</div>
+              </div>
+              <div style="font-size:11px;color:#94a3b8;margin-top:2px;">R$ 1.715 → R$ 1.800 · Renovação 6m</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: REGISTRAR PAGAMENTO -->
+<div class="modal-overlay" id="modal-pagamento" onclick="closeIfOverlay(event,'modal-pagamento')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Registrar Pagamento</div>
+      <div class="modal-sub">Clínica Sorrisos</div>
+    </div>
+    <div class="modal-body">
+      <div class="info-box">2 cobranças em aberto: <strong>Mar/2026 Tráfego (R$ 2.500)</strong> e <strong>Mar/2026 Redes (R$ 1.800)</strong>. Vinculando ao pagamento, o status de inadimplência é atualizado automaticamente.</div>
+      <div class="form-group">
+        <div class="form-label">Vincular à cobrança existente</div>
+        <select class="form-input">
+          <option>Mar/2026 — Tráfego Pago (R$ 2.500) ⚠️ em atraso</option>
+          <option>Mar/2026 — Redes Sociais (R$ 1.800) ⚠️ em atraso</option>
+          <option>— Pagamento avulso (sem vínculo) —</option>
+        </select>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group">
+          <div class="form-label">Data do pagamento <span>*</span></div>
+          <input class="form-input" type="date" />
+        </div>
+        <div class="form-group">
+          <div class="form-label">Valor (R$) <span>*</span></div>
+          <input class="form-input" placeholder="2.500,00" />
+          <div class="form-hint">Valor da cobrança: R$ 2.500</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">Forma de pagamento</div>
+        <select class="form-input"><option>PIX</option><option>Boleto</option><option>Cartão</option><option>Transferência</option><option>Outro</option></select>
+      </div>
+      <div class="form-group">
+        <div class="form-label">Observações</div>
+        <input class="form-input" placeholder="Notas opcionais..." />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-pagamento')">Cancelar</button>
+      <button class="btn btn-primary">Confirmar Pagamento</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function closeIfOverlay(e, id) { if (e.target === document.getElementById(id)) closeModal(id); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open')); });
+
+// Filter tabs
+document.querySelectorAll('.filter-tab').forEach(tab => {
+  tab.addEventListener('click', function() {
+    this.closest('.filter-tabs').querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

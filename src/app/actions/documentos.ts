@@ -27,13 +27,16 @@ export async function uploadDocumento(clienteId: string, formData: FormData) {
 
   if (uploadError) return { error: uploadError.message }
 
+  const { data: profile } = await supabase.from('profiles').select('agencia_id').eq('id', user.id).single()
+  if (!profile?.agencia_id) return { error: 'Perfil não encontrado' }
+
   const { error: dbError } = await supabase.from('documentos_cliente').insert({
-    cliente_id: clienteId,
-    nome: file.name,
-    tipo: (formData.get('tipo') as DocumentoTipo) || 'outro',
-    storage_path: storagePath,
-    tamanho_bytes: file.size,
-    created_by: user.id,
+    agencia_id:  profile.agencia_id,
+    cliente_id:  clienteId,
+    nome:        file.name,
+    tipo:        (formData.get('tipo') as DocumentoTipo) || 'outro',
+    arquivo_url: storagePath,
+    enviado_por: user.id,
   })
 
   if (dbError) {
