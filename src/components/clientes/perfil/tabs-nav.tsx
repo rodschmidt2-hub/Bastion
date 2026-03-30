@@ -8,8 +8,8 @@ const tabs = [
   { id: 'produtos',    label: 'Produtos' },
   { id: 'contratos',   label: 'Contratos' },
   { id: 'financeiro',  label: 'Financeiro' },
-  { id: 'documentos',  label: 'Documentos' },
   { id: 'nps',         label: 'NPS' },
+  { id: 'documentos',  label: 'Documentos' },
 ]
 
 export function TabsNav({ clienteId }: { clienteId: string }) {

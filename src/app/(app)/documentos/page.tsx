@@ -35,13 +35,13 @@ export default async function DocumentosPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Documentos</h1>
-        <p className="mt-0.5 text-sm text-slate-500">
+        <h1 className="text-[20px] font-bold text-slate-900">Documentos</h1>
+        <p className="mt-0.5 text-[13px] text-slate-400">
           {(documentos ?? []).length} {(documentos ?? []).length === 1 ? 'documento' : 'documentos'} armazenados
         </p>
       </div>
 
-      <div className="rounded-xl border border-slate-100 bg-white shadow-sm">
+      <div className="rounded-xl border border-slate-200 bg-white">
         {(documentos ?? []).length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="mb-3 rounded-xl bg-slate-50 p-4"><FileText className="h-6 w-6 text-slate-300" /></div>

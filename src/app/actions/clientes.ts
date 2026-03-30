@@ -90,7 +90,7 @@ export async function desativarCliente(id: string, motivo: string) {
   const hoje = new Date().toISOString().split('T')[0]
 
   const { error } = await supabase.from('clientes').update({
-    status: 'inativo' as any,
+    status: 'inativo' as ClienteStatus,
     motivo_inativacao: motivo,
     data_inativacao: hoje,
   }).eq('id', id)
@@ -120,7 +120,7 @@ export async function reativarCliente(id: string) {
   const statusAnterior = cliente?.status ?? 'inativo'
 
   const { error } = await supabase.from('clientes').update({
-    status: 'ativo' as any,
+    status: 'ativo' as ClienteStatus,
     motivo_inativacao: null,
     data_inativacao: null,
     data_suspensao: null,
@@ -144,7 +144,7 @@ export async function reativarCliente(id: string) {
 
 export async function saveNotaFinanceira(clienteId: string, conteudo: string) {
   const supabase = await createClient()
-  const { error } = await supabase.from('clientes').update({ nota_financeira: conteudo } as any).eq('id', clienteId)
+  const { error } = await supabase.from('clientes').update({ nota_financeira: conteudo }).eq('id', clienteId)
   if (error) return { error: error.message }
   return { success: true }
 }

@@ -2,12 +2,17 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { getProfile } from '@/lib/auth/get-profile'
 
 export async function createPagamento(clienteId: string, formData: FormData) {
   const supabase = await createClient()
+  const profile = await getProfile()
+  if (!profile?.agencia_id) return { error: 'Perfil não encontrado' }
+
   const { data: { user } } = await supabase.auth.getUser()
 
   const { error } = await supabase.from('pagamentos').insert({
+    agencia_id: profile.agencia_id,
     cliente_id: clienteId,
     data: formData.get('data') as string,
     valor: parseFloat(formData.get('valor') as string),

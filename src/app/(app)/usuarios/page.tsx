@@ -22,13 +22,13 @@ export default async function UsuariosPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">Usuários</h1>
-          <p className="mt-0.5 text-sm text-slate-500">Gerencie os colaboradores internos</p>
+          <h1 className="text-[20px] font-bold text-slate-900">Usuários</h1>
+          <p className="mt-0.5 text-[13px] text-slate-400">Gerencie os colaboradores internos</p>
         </div>
         <InviteUserButton />
       </div>
 
-      <div className="rounded-xl border border-slate-100 bg-white shadow-sm">
+      <div className="rounded-xl border border-slate-200 bg-white">
         <UsersTable users={(users ?? []) as Profile[]} currentUserId={profile.id} />
       </div>
     </div>

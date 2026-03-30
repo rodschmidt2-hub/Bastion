@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getProfile } from '@/lib/auth/get-profile'
 import { Suspense } from 'react'
 import { TabsNav } from '@/components/clientes/perfil/tabs-nav'
+import { PerfilActionsBar } from '@/components/clientes/perfil/perfil-actions-bar'
 import { DadosTab } from '@/components/clientes/perfil/dados-tab'
 import { ProdutosTab } from '@/components/clientes/perfil/produtos-tab'
 import { ContratosTab } from '@/components/clientes/perfil/contratos-tab'
@@ -173,7 +174,7 @@ export default async function ClientePerfilPage({
       </Link>
 
       {/* Header card */}
-      <div className="rounded-xl border border-slate-100 bg-white shadow-sm">
+      <div className="rounded-xl border border-slate-200 bg-white">
         <div className="flex items-center gap-4 px-6 py-5">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-base font-bold text-slate-600">
             {initials}
@@ -191,15 +192,34 @@ export default async function ClientePerfilPage({
               </span>
               <HealthScoreBadge data={healthScore} />
             </div>
-            <p className="text-sm text-slate-400 mt-0.5">
-              {[c.cnpj, c.cidade && `${c.cidade}/${c.uf}`].filter(Boolean).join(' · ') || 'Sem dados adicionais'}
+            <p className="text-[12px] text-slate-400 mt-0.5">
+              {[
+                c.segmento ? { solo: 'Solo', rede: 'Rede', especialidade: 'Especialidade' }[c.segmento] : null,
+                c.porte ? { pequeno: 'Pequeno porte', medio: 'Médio porte', grande: 'Grande porte' }[c.porte] : null,
+                (responsaveis ?? []).find(r => r.id === c.responsavel_id)?.nome
+                  ? `Responsável: ${(responsaveis ?? []).find(r => r.id === c.responsavel_id)!.nome}`
+                  : null,
+                (() => {
+                  const d = new Date(c.created_at)
+                  if (isNaN(d.getTime())) return null
+                  const m = d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')
+                  const y = String(d.getFullYear()).slice(2)
+                  return `Cliente desde ${m.charAt(0).toUpperCase() + m.slice(1)}/${y}`
+                })(),
+              ].filter(Boolean).join(' • ')}
             </p>
           </div>
-          <div className="text-right shrink-0">
-            <p className="text-xs text-slate-400 uppercase tracking-wide">MRR</p>
-            <p className="text-lg font-semibold text-slate-900">
-              {mrr.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-            </p>
+          <div className="flex items-center gap-4 shrink-0">
+            <div className="text-right">
+              <p className="text-[20px] font-bold text-blue-600 leading-tight">
+                {mrr.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+              </p>
+              <p className="text-[11px] text-slate-400">MRR atual</p>
+            </div>
+            <PerfilActionsBar
+              cliente={c}
+              responsaveis={(responsaveis ?? []) as Pick<Profile, 'id' | 'nome' | 'email'>[]}
+            />
           </div>
         </div>
 
@@ -233,6 +253,7 @@ export default async function ClientePerfilPage({
             <ContratosTab
               clienteId={id}
               contratos={(contratos ?? []) as Contrato[]}
+              produtos={(produtos ?? []) as ProdutoContratadoView[]}
             />
           )}
           {tab === 'financeiro' && (
@@ -242,6 +263,15 @@ export default async function ClientePerfilPage({
               mrr={mrr}
               notaFinanceira={(c as any).nota_financeira ?? null}
               pontualidade={pontualidade}
+              renovacoes={(renovacoesData ?? []).map((r: any) => ({
+                id: r.id,
+                created_at: r.created_at,
+                produto_nome: (produtos ?? []).find((p: any) => p.id === r.contrato_item_id)?.produto_nome ?? null,
+                valor_anterior: r.valor_anterior,
+                valor_novo: r.valor_novo,
+                data_nova: r.data_nova,
+                renovado_por_nome: r.renovado_por_perfil?.nome ?? null,
+              }))}
               metricas={{
                 ltv,
                 cac: (c as any).custo_aquisicao ?? null,

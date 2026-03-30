@@ -27,7 +27,7 @@ export function PontualidadeGrid({ itens }: { itens: PontualidadeItem[] }) {
   const score = total > 0 ? Math.round((pontual / total) * 100) : null
 
   return (
-    <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
+    <div className="rounded-xl border border-slate-200 bg-white p-5">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-slate-800">Pontualidade Histórica</h3>
         {score !== null && (

@@ -8,7 +8,7 @@ import type { ProdutoAgencia, ProdutoOferta } from '@/types/database'
 interface AdicionarProdutoModalProps {
   open: boolean
   onClose: () => void
-  contratoId: string
+  contratoId: string | null
   clienteId: string
   catalogo: ProdutoAgencia[]
   ofertasMap: Record<string, ProdutoOferta[]>

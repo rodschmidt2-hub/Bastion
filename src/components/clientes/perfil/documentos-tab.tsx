@@ -110,7 +110,7 @@ export function DocumentosTab({ clienteId, documentos }: DocumentosTabProps) {
       ) : (
         <div className="space-y-2">
           {documentos.map((doc) => (
-            <div key={doc.id} className="flex items-center justify-between rounded-xl border border-slate-100 bg-white p-4 group">
+            <div key={doc.id} className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 group">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-50">
                   <FileText className="h-4 w-4 text-slate-400" />

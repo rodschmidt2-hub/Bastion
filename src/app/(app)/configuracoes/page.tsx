@@ -8,11 +8,11 @@ export default async function ConfiguracoesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Configurações</h1>
-        <p className="mt-0.5 text-sm text-slate-500">Dados da sua conta</p>
+        <h1 className="text-[20px] font-bold text-slate-900">Configurações</h1>
+        <p className="mt-0.5 text-[13px] text-slate-400">Dados da sua conta</p>
       </div>
 
-      <div className="max-w-lg rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
+      <div className="max-w-lg rounded-xl border border-slate-200 bg-white p-6">
         <div className="flex items-center gap-4 pb-5 border-b border-slate-100">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 text-base font-bold text-white">
             {(profile?.nome ?? user?.email ?? '?').slice(0, 2).toUpperCase()}

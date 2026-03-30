@@ -1,34 +1,58 @@
 'use client'
 
 import { useState, useTransition, useRef } from 'react'
-import { Plus, X, AlertTriangle } from 'lucide-react'
+import { Plus, X, AlertTriangle, FileText } from 'lucide-react'
 import { createContrato, updateContratoStatus } from '@/app/actions/contratos'
-import type { Contrato, ContratoStatus } from '@/types/database'
+import type { Contrato, ContratoStatus, ProdutoContratadoView } from '@/types/database'
 
-const statusBadge: Record<ContratoStatus, { label: string; className: string }> = {
-  ativo:        { label: 'Ativo',        className: 'bg-emerald-50 text-emerald-700' },
-  em_renovacao: { label: 'Em renovação', className: 'bg-blue-50 text-blue-700' },
-  pausado:      { label: 'Pausado',      className: 'bg-amber-50 text-amber-700' },
-  cancelado:    { label: 'Cancelado',    className: 'bg-red-50 text-red-700' },
-  encerrado:    { label: 'Encerrado',    className: 'bg-slate-100 text-slate-500' },
+const statusMap: Record<ContratoStatus, { label: string; badge: string }> = {
+  ativo:        { label: 'Ativo',        badge: 'bg-emerald-50 text-emerald-700' },
+  em_renovacao: { label: 'Em renovação', badge: 'bg-amber-50 text-amber-700' },
+  pausado:      { label: 'Pausado',      badge: 'bg-amber-50 text-amber-700' },
+  cancelado:    { label: 'Cancelado',    badge: 'bg-red-50 text-red-700' },
+  encerrado:    { label: 'Encerrado',    badge: 'bg-slate-100 text-slate-500' },
+}
+
+const itemStatusMap: Record<string, { dot: string; badge: string; label: string }> = {
+  ativo:     { dot: 'bg-emerald-500', badge: 'bg-emerald-50 text-emerald-700', label: 'Ativo' },
+  pausado:   { dot: 'bg-amber-500',   badge: 'bg-amber-50 text-amber-700',     label: 'Pausado' },
+  cancelado: { dot: 'bg-slate-400',   badge: 'bg-slate-100 text-slate-500',    label: 'Cancelado' },
+  encerrado: { dot: 'bg-slate-400',   badge: 'bg-slate-100 text-slate-500',    label: 'Encerrado' },
+}
+
+function fmt(v: number) {
+  return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+}
+
+function fmtDate(d: string | null) {
+  if (!d) return null
+  return new Date(d).toLocaleDateString('pt-BR')
 }
 
 function daysUntil(dateStr: string | null): number | null {
   if (!dateStr) return null
-  const diff = new Date(dateStr).getTime() - Date.now()
-  return Math.ceil(diff / (1000 * 60 * 60 * 24))
+  return Math.ceil((new Date(dateStr).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
 }
 
 interface ContratosTabProps {
   clienteId: string
   contratos: Contrato[]
+  produtos: ProdutoContratadoView[]
 }
 
-export function ContratosTab({ clienteId, contratos }: ContratosTabProps) {
+export function ContratosTab({ clienteId, contratos, produtos }: ContratosTabProps) {
   const [showForm, setShowForm] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const formRef = useRef<HTMLFormElement>(null)
+
+  // Group produtos by contrato_id
+  const produtosPorContrato = produtos.reduce<Record<string, ProdutoContratadoView[]>>((acc, p) => {
+    if (!p.contrato_id) return acc
+    if (!acc[p.contrato_id]) acc[p.contrato_id] = []
+    acc[p.contrato_id].push(p)
+    return acc
+  }, {})
 
   function handleSubmit(formData: FormData) {
     setError(null)
@@ -42,40 +66,33 @@ export function ContratosTab({ clienteId, contratos }: ContratosTabProps) {
     startTransition(async () => { await updateContratoStatus(clienteId, contratoId, status) })
   }
 
-  const alertas = contratos.filter((c) => {
-    const days = daysUntil(c.data_fim)
-    return c.status === 'ativo' && days !== null && days <= 30 && days >= 0
-  })
+  const ativos = contratos.filter(c => c.status !== 'encerrado' && c.status !== 'cancelado')
+  const historico = contratos.filter(c => c.status === 'encerrado' || c.status === 'cancelado')
+
+  const mrrTotal = contratos
+    .filter(c => c.status === 'ativo')
+    .reduce((s, c) => {
+      const ps = produtosPorContrato[c.id] ?? []
+      return s + ps.filter(p => p.item_status === 'ativo').reduce((a, p) => a + (p.valor_efetivo ?? 0), 0)
+    }, 0)
 
   return (
     <div className="p-6 space-y-5">
-      {alertas.length > 0 && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <AlertTriangle className="h-4 w-4 text-amber-600" />
-            <span className="text-sm font-semibold text-amber-800">Atenção — contratos próximos do vencimento</span>
-          </div>
-          {alertas.map((c) => {
-            const days = daysUntil(c.data_fim)!
-            return (
-              <p key={c.id} className="text-sm text-amber-700">
-                {c.tipo} — vence em <strong>{days} {days === 1 ? 'dia' : 'dias'}</strong>
-                {' '}({new Date(c.data_fim!).toLocaleDateString('pt-BR')})
-              </p>
-            )
-          })}
-        </div>
-      )}
-
-      <div className="flex justify-end">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-slate-500">
+          {contratos.length} {contratos.length === 1 ? 'contrato' : 'contratos'}
+          {mrrTotal > 0 && ` · ${fmt(mrrTotal)}/mês em vigor`}
+        </p>
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
         >
-          <Plus className="h-4 w-4" /> Novo contrato
+          <Plus className="h-3.5 w-3.5" /> Novo contrato
         </button>
       </div>
 
+      {/* Form novo contrato */}
       {showForm && (
         <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-5">
           <div className="flex items-center justify-between mb-4">
@@ -89,8 +106,13 @@ export function ContratosTab({ clienteId, contratos }: ContratosTabProps) {
                 <input name="tipo" defaultValue="Prestação de Serviços" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-100" />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600">Valor (R$)</label>
-                <input name="valor" type="number" step="0.01" placeholder="0,00" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-100" />
+                <label className="mb-1 block text-xs font-medium text-slate-600">Forma de pagamento</label>
+                <select name="forma_pagamento" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-100">
+                  <option value="pix">PIX</option>
+                  <option value="boleto">Boleto</option>
+                  <option value="cartao">Cartão</option>
+                  <option value="transferencia">Transferência</option>
+                </select>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -120,54 +142,166 @@ export function ContratosTab({ clienteId, contratos }: ContratosTabProps) {
         </div>
       )}
 
-      {contratos.length === 0 ? (
+      {contratos.length === 0 && (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <p className="text-sm text-slate-400">Nenhum contrato registrado ainda</p>
         </div>
-      ) : (
-        <div className="space-y-2">
-          {contratos.map((c) => {
-            const badge = statusBadge[c.status as ContratoStatus] ?? statusBadge.encerrado
-            const days = daysUntil(c.data_fim)
-            const isAlert = c.status === 'ativo' && days !== null && days <= 30 && days >= 0
+      )}
 
-            return (
-              <div key={c.id} className={`rounded-xl border p-4 ${isAlert ? 'border-amber-200 bg-amber-50/50' : 'border-slate-100 bg-white'}`}>
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-slate-800">{c.tipo}</p>
-                      {isAlert && <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />}
-                    </div>
-                    <p className="mt-0.5 text-xs text-slate-400">
-                      {new Date(c.data_ativacao).toLocaleDateString('pt-BR')}
-                      {c.data_fim && ` — ${new Date(c.data_fim).toLocaleDateString('pt-BR')}`}
-                    </p>
-                    {isAlert && (
-                      <p className="mt-1 text-xs font-medium text-amber-600">Vence em {days} {days === 1 ? 'dia' : 'dias'}</p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {c.documento_url && (
-                      <a href={c.documento_url} target="_blank" rel="noopener noreferrer" className="rounded-lg px-2.5 py-1 text-xs text-blue-600 hover:bg-blue-50">Ver doc</a>
-                    )}
-                    <select
-                      value={c.status}
-                      disabled={isPending}
-                      onChange={(e) => handleStatus(c.id, e.target.value as ContratoStatus)}
-                      className={`rounded-full border-0 px-2.5 py-1 text-xs font-medium ${badge.className}`}
-                    >
-                      <option value="ativo">Ativo</option>
-                      <option value="em_renovacao">Em renovação</option>
-                      <option value="pausado">Pausado</option>
-                      <option value="cancelado">Cancelado</option>
-                      <option value="encerrado">Encerrado</option>
-                    </select>
-                  </div>
-                </div>
+      {/* Contratos ativos/vigentes */}
+      {ativos.map((c) => {
+        const s = statusMap[c.status as ContratoStatus] ?? statusMap.encerrado
+        const days = daysUntil(c.data_fim)
+        const isExpiring = c.status === 'ativo' && days !== null && days <= 30 && days >= 0
+        const ps = produtosPorContrato[c.id] ?? []
+        const mrrContrato = ps.filter(p => p.item_status === 'ativo').reduce((a, p) => a + (p.valor_efetivo ?? 0), 0)
+
+        return (
+          <div key={c.id} className={`rounded-xl border overflow-hidden ${isExpiring ? 'border-amber-200' : 'border-slate-200'}`}>
+            {/* Header do contrato */}
+            <div className={`flex items-center gap-3 px-5 py-4 border-b ${isExpiring ? 'bg-amber-50/50 border-amber-100' : 'bg-white border-slate-100'}`}>
+              <FileText className="h-5 w-5 shrink-0 text-slate-400" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-slate-900">{c.tipo}</p>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  {fmtDate(c.data_ativacao)}
+                  {c.data_fim && ` → `}
+                  {c.data_fim && (
+                    <span className={isExpiring ? 'text-amber-600 font-semibold' : ''}>
+                      {fmtDate(c.data_fim)}
+                      {isExpiring && ` ⚠️ vence em ${days} ${days === 1 ? 'dia' : 'dias'}`}
+                    </span>
+                  )}
+                </p>
               </div>
-            )
-          })}
+              <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${s.badge}`}>{s.label}</span>
+              {c.documento_url && (
+                <a href={c.documento_url} target="_blank" rel="noopener noreferrer"
+                  className="shrink-0 rounded-lg border border-slate-200 px-2.5 py-1 text-xs text-slate-600 hover:bg-slate-50">
+                  📄 Ver PDF
+                </a>
+              )}
+              <select
+                value={c.status}
+                disabled={isPending}
+                onChange={(e) => handleStatus(c.id, e.target.value as ContratoStatus)}
+                className="shrink-0 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600 outline-none"
+              >
+                <option value="ativo">Ativo</option>
+                <option value="em_renovacao">Em renovação</option>
+                <option value="pausado">Pausado</option>
+                <option value="cancelado">Cancelado</option>
+                <option value="encerrado">Encerrado</option>
+              </select>
+            </div>
+
+            {/* Serviços incluídos */}
+            {ps.length > 0 && (
+              <div className={`px-5 py-4 ${isExpiring ? 'bg-amber-50/30' : 'bg-slate-50/50'}`}>
+                <p className="mb-3 text-[10px] font-bold uppercase tracking-[.6px] text-slate-400">Serviços Incluídos</p>
+                <div className="space-y-2">
+                  {ps.map((p) => {
+                    const is = itemStatusMap[p.item_status ?? 'ativo'] ?? itemStatusMap.ativo
+                    const metaParts = [
+                      p.produto_tipo ? (p.produto_tipo === 'pontual' ? 'Pontual' : 'Recorrente') : null,
+                      p.periodicidade ? p.periodicidade.charAt(0).toUpperCase() + p.periodicidade.slice(1) : null,
+                      p.data_inicio_item ? `Desde ${fmtDate(p.data_inicio_item)}` : null,
+                      p.data_fim_item ? `Vence ${fmtDate(p.data_fim_item)}` : null,
+                    ].filter(Boolean).join(' · ')
+
+                    return (
+                      <div key={p.id} className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3">
+                        <span className={`h-2 w-2 shrink-0 rounded-full ${is.dot}`} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-slate-800">{p.produto_nome ?? '—'}</p>
+                          {metaParts && <p className="text-xs text-slate-400 mt-0.5">{metaParts}</p>}
+                        </div>
+                        <p className="text-sm font-bold text-slate-800 shrink-0">
+                          {p.valor_efetivo != null ? `${fmt(p.valor_efetivo)}/mês` : '—'}
+                        </p>
+                        <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${is.badge}`}>{is.label}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {mrrContrato > 0 && (
+                  <div className={`mt-4 flex items-center justify-between border-t pt-3 ${isExpiring ? 'border-amber-200' : 'border-slate-200'}`}>
+                    <span className={`text-xs font-medium ${isExpiring ? 'text-amber-700' : 'text-slate-500'}`}>
+                      Fatura mensal gerada por este contrato
+                    </span>
+                    <span className="text-base font-extrabold text-slate-900">{fmt(mrrContrato)}/mês</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Footer */}
+            <div className={`flex items-center justify-between border-t px-5 py-3 ${isExpiring ? 'border-amber-100 bg-amber-50/20' : 'border-slate-100 bg-white'}`}>
+              <p className="text-xs text-slate-400">
+                {c.data_fim && mrrContrato > 0
+                  ? `Valor total (até ${fmtDate(c.data_fim)}): ${fmt(mrrContrato * 12)}`
+                  : (c as any).observacao ?? ''}
+              </p>
+              {(c.status === 'ativo' || c.status === 'em_renovacao') && (
+                <button className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">
+                  Renovar Contrato
+                </button>
+              )}
+            </div>
+          </div>
+        )
+      })}
+
+      {/* Histórico (encerrados/cancelados) */}
+      {historico.length > 0 && (
+        <div>
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[.6px] text-slate-400">Histórico</p>
+          <div className="space-y-3">
+            {historico.map((c) => {
+              const s = statusMap[c.status as ContratoStatus] ?? statusMap.encerrado
+              const ps = produtosPorContrato[c.id] ?? []
+
+              return (
+                <div key={c.id} className="rounded-xl border border-slate-200 overflow-hidden opacity-70">
+                  <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-100 bg-white">
+                    <FileText className="h-4 w-4 shrink-0 text-slate-300" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-slate-600">{c.tipo}</p>
+                      <p className="text-xs text-slate-400">
+                        {fmtDate(c.data_ativacao)}
+                        {c.data_fim && ` → ${fmtDate(c.data_fim)}`}
+                      </p>
+                    </div>
+                    <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${s.badge}`}>{s.label}</span>
+                  </div>
+
+                  {ps.length > 0 && (
+                    <div className="px-5 py-4 bg-slate-50">
+                      <p className="mb-2 text-[10px] font-bold uppercase tracking-[.6px] text-slate-400">Serviços que constavam</p>
+                      <div className="space-y-2">
+                        {ps.map((p) => (
+                          <div key={p.id} className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3">
+                            <span className="h-2 w-2 shrink-0 rounded-full bg-slate-300" />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm text-slate-500">{p.produto_nome ?? '—'}</p>
+                              <p className="text-xs text-slate-400">
+                                {p.data_fim_item ? `Encerrado em ${fmtDate(p.data_fim_item)}` : 'Encerrado'}
+                              </p>
+                            </div>
+                            <p className="text-sm font-semibold text-slate-400">
+                              {p.valor_efetivo != null ? fmt(p.valor_efetivo) : '—'}
+                            </p>
+                            <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">Encerrado</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
         </div>
       )}
     </div>

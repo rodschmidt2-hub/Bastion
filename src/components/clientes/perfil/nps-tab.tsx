@@ -61,7 +61,7 @@ export function NpsTab({ clienteId, registros, userRole }: NpsTabProps) {
     <div className="p-6 space-y-5">
       {/* Score atual */}
       {ultimo ? (
-        <div className="flex items-center gap-5 rounded-xl border border-slate-100 bg-slate-50/50 p-5">
+        <div className="flex items-center gap-5 rounded-xl border border-slate-200 bg-slate-50/50 p-5">
           <div className={`flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl ring-4 ${npsZone(ultimo.score).bg} ${npsZone(ultimo.score).ring}`}>
             <span className={`text-3xl font-bold ${npsZone(ultimo.score).text}`}>{ultimo.score}</span>
           </div>
@@ -89,7 +89,7 @@ export function NpsTab({ clienteId, registros, userRole }: NpsTabProps) {
           </div>
         </div>
       ) : (
-        <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50/50 p-5">
+        <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/50 p-5">
           <p className="text-sm text-slate-400">Nenhum registro NPS ainda</p>
           <button
             onClick={() => setShowForm(true)}
@@ -200,7 +200,7 @@ export function NpsTab({ clienteId, registros, userRole }: NpsTabProps) {
           {registros.map((r) => {
             const cls = npsZone(r.score)
             return (
-              <div key={r.id} className="flex items-start justify-between rounded-xl border border-slate-100 bg-white p-4">
+              <div key={r.id} className="flex items-start justify-between rounded-xl border border-slate-200 bg-white p-4">
                 <div className="flex items-start gap-3">
                   <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border-2 text-sm font-bold ${cls.bg} ${cls.text} ${cls.unselectedBorder}`}>
                     {r.score}

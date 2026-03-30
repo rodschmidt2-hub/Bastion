@@ -139,34 +139,34 @@ export default async function AnaliticoDashboardPage() {
     <div className="space-y-6">
       <div className="flex items-center gap-3">
         <Link href="/dashboard" className="text-sm text-slate-400 hover:text-slate-600">← Dashboard</Link>
-        <h1 className="text-xl font-semibold text-slate-900">Análise de Receita</h1>
+        <h1 className="text-[20px] font-bold text-slate-900">Análise de Receita</h1>
       </div>
 
       {/* Métricas de base */}
       <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
-        <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
-          <p className="text-xs text-slate-400 uppercase tracking-wide">Margem Total</p>
-          <p className={`mt-2 text-xl font-semibold ${margem >= 0 ? 'text-slate-900' : 'text-red-600'}`}>{fmt(margem)}</p>
-          <p className="mt-0.5 text-xs text-slate-400">receita − custo base</p>
+        <div className="rounded-xl border border-slate-200 bg-white px-5 py-[18px]">
+          <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">Margem Total</p>
+          <p className={`mt-[6px] mb-0.5 text-[26px] font-bold leading-tight ${margem >= 0 ? 'text-slate-900' : 'text-red-600'}`}>{fmt(margem)}</p>
+          <p className="text-[11px] text-slate-400">receita − custo base</p>
         </div>
-        <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
-          <p className="text-xs text-slate-400 uppercase tracking-wide">CAC Médio</p>
-          <p className="mt-2 text-xl font-semibold text-slate-900">{cacMedio !== null ? fmt(cacMedio) : '—'}</p>
-          <p className="mt-0.5 text-xs text-slate-400">{clientesComCac.length} clientes com CAC</p>
+        <div className="rounded-xl border border-slate-200 bg-white px-5 py-[18px]">
+          <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">CAC Médio</p>
+          <p className="mt-[6px] mb-0.5 text-[26px] font-bold leading-tight text-slate-900">{cacMedio !== null ? fmt(cacMedio) : '—'}</p>
+          <p className="text-[11px] text-slate-400">{clientesComCac.length} clientes com CAC</p>
         </div>
-        <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
-          <p className="text-xs text-slate-400 uppercase tracking-wide">LTV/CAC Médio</p>
-          <p className={`mt-2 text-xl font-semibold ${ltvcacColor}`}>
+        <div className="rounded-xl border border-slate-200 bg-white px-5 py-[18px]">
+          <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">LTV/CAC Médio</p>
+          <p className={`mt-[6px] mb-0.5 text-[26px] font-bold leading-tight ${ltvcacColor}`}>
             {ltvcacMedio !== null ? `${ltvcacMedio.toFixed(1)}×` : '—'}
           </p>
-          <p className="mt-0.5 text-xs text-slate-400">
+          <p className="text-[11px] text-slate-400">
             {ltvcacMedio === null ? 'sem dados' : ltvcacMedio >= 5 ? 'ótimo' : ltvcacMedio >= 3 ? 'ok' : 'ruim'}
           </p>
         </div>
-        <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
-          <p className="text-xs text-slate-400 uppercase tracking-wide">Tenure Médio</p>
-          <p className="mt-2 text-xl font-semibold text-slate-900">{tenureMedio !== null ? `${tenureMedio} meses` : '—'}</p>
-          <p className="mt-0.5 text-xs text-slate-400">
+        <div className="rounded-xl border border-slate-200 bg-white px-5 py-[18px]">
+          <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">Tenure Médio</p>
+          <p className="mt-[6px] mb-0.5 text-[26px] font-bold leading-tight text-slate-900">{tenureMedio !== null ? `${tenureMedio} meses` : '—'}</p>
+          <p className="text-[11px] text-slate-400">
             {paybackMedio !== null ? `Payback: ${paybackMedio} meses` : 'payback sem dados'}
           </p>
         </div>
@@ -174,7 +174,7 @@ export default async function AnaliticoDashboardPage() {
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* MRR por Categoria */}
-        <div className="rounded-xl border border-slate-100 bg-white shadow-sm">
+        <div className="rounded-xl border border-slate-200 bg-white">
           <div className="border-b border-slate-100 px-5 py-4">
             <h2 className="text-sm font-semibold text-slate-800">MRR por Categoria</h2>
           </div>
@@ -188,7 +188,7 @@ export default async function AnaliticoDashboardPage() {
         </div>
 
         {/* MRR por Segmento */}
-        <div className="rounded-xl border border-slate-100 bg-white shadow-sm">
+        <div className="rounded-xl border border-slate-200 bg-white">
           <div className="border-b border-slate-100 px-5 py-4">
             <h2 className="text-sm font-semibold text-slate-800">MRR por Segmento</h2>
           </div>
@@ -202,7 +202,7 @@ export default async function AnaliticoDashboardPage() {
         </div>
 
         {/* MRR por Responsável */}
-        <div className="rounded-xl border border-slate-100 bg-white shadow-sm">
+        <div className="rounded-xl border border-slate-200 bg-white">
           <div className="border-b border-slate-100 px-5 py-4">
             <h2 className="text-sm font-semibold text-slate-800">MRR por Responsável</h2>
           </div>
@@ -218,7 +218,7 @@ export default async function AnaliticoDashboardPage() {
         {/* Concentração + Recorrente/Pontual */}
         <div className="space-y-4">
           {/* Concentração */}
-          <div className="rounded-xl border border-slate-100 bg-white shadow-sm">
+          <div className="rounded-xl border border-slate-200 bg-white">
             <div className="border-b border-slate-100 px-5 py-4 flex items-center justify-between">
               <h2 className="text-sm font-semibold text-slate-800">Concentração de Receita</h2>
               {maxConcentracao > 20 && (
@@ -236,7 +236,7 @@ export default async function AnaliticoDashboardPage() {
           </div>
 
           {/* Recorrente vs Pontual */}
-          <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
+          <div className="rounded-xl border border-slate-200 bg-white p-5">
             <h2 className="mb-3 text-sm font-semibold text-slate-800">Recorrente vs Pontual</h2>
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">

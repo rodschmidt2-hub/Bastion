@@ -23,13 +23,13 @@ export default async function ProdutosPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Catálogo de Produtos</h1>
-        <p className="mt-0.5 text-sm text-slate-500">
+        <h1 className="text-[20px] font-bold text-slate-900">Catálogo de Produtos</h1>
+        <p className="mt-0.5 text-[13px] text-slate-400">
           {produtos?.filter((p) => p.ativo).length ?? 0} produtos ativos
         </p>
       </div>
 
-      <div className="rounded-xl border border-slate-100 bg-white shadow-sm">
+      <div className="rounded-xl border border-slate-200 bg-white">
         <ProdutosTable produtos={(produtos ?? []) as ProdutoAgencia[]} ofertasMap={ofertasMap} />
       </div>
     </div>

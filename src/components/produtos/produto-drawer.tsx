@@ -198,7 +198,7 @@ export function ProdutoDrawer({ open, onClose, produto, ofertas = [] }: ProdutoD
                 ) : (
                   <div className="space-y-2">
                     {ofertas.map((o) => (
-                      <div key={o.id} className="flex items-center justify-between rounded-lg border border-slate-100 bg-slate-50/40 px-3 py-2">
+                      <div key={o.id} className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50/40 px-3 py-2">
                         <div>
                           <p className={`text-sm font-medium ${o.ativo ? 'text-slate-700' : 'text-slate-400'}`}>{o.nome}</p>
                           <p className="text-xs text-slate-400">

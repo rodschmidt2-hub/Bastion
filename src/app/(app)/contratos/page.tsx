@@ -22,7 +22,7 @@ export default async function ContratosPage() {
   const em30dias = new Date(hoje)
   em30dias.setDate(em30dias.getDate() + 30)
 
-  const [{ data: contratos }, { data: clientes }, { data: itensAVencer }] = await Promise.all([
+  const [{ data: contratos }, { data: clientes }, { data: itensAVencer }, { data: produtosPorContrato }] = await Promise.all([
     supabase.from('contratos').select('*').order('data_ativacao', { ascending: false }),
     supabase.from('clientes').select('id, razao_social'),
     supabase
@@ -33,9 +33,20 @@ export default async function ContratosPage() {
       .gte('data_fim_item', hoje.toISOString().split('T')[0])
       .lte('data_fim_item', em30dias.toISOString().split('T')[0])
       .order('data_fim_item'),
+    supabase
+      .from('produtos_contratados')
+      .select('contrato_id, valor_efetivo')
+      .eq('item_status', 'ativo'),
   ])
 
   const clienteMap = Object.fromEntries((clientes ?? []).map((c) => [c.id, c.razao_social]))
+
+  const mrrPorContrato: Record<string, number> = {}
+  for (const item of (produtosPorContrato ?? [])) {
+    if (item.contrato_id) {
+      mrrPorContrato[item.contrato_id] = (mrrPorContrato[item.contrato_id] ?? 0) + (item.valor_efetivo ?? 0)
+    }
+  }
 
   const ativos   = (contratos ?? []).filter((c) => c.status === 'ativo').length
   const aVencer  = (contratos ?? []).filter((c) => {
@@ -47,22 +58,22 @@ export default async function ContratosPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Contratos</h1>
-        <p className="mt-0.5 text-sm text-slate-500">Todos os contratos da operação</p>
+        <h1 className="text-[20px] font-bold text-slate-900">Contratos</h1>
+        <p className="mt-0.5 text-[13px] text-slate-400">Todos os contratos da operação</p>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
-        <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Total</p>
-          <p className="mt-2 text-2xl font-semibold text-slate-900">{(contratos ?? []).length}</p>
+        <div className="rounded-xl border border-slate-200 bg-white px-5 py-[18px]">
+          <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">Total</p>
+          <p className="mt-[6px] mb-0.5 text-[26px] font-bold leading-tight text-slate-900">{(contratos ?? []).length}</p>
         </div>
-        <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Ativos</p>
-          <p className="mt-2 text-2xl font-semibold text-emerald-700">{ativos}</p>
+        <div className="rounded-xl border border-slate-200 bg-white px-5 py-[18px]">
+          <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">Ativos</p>
+          <p className="mt-[6px] mb-0.5 text-[26px] font-bold leading-tight text-emerald-700">{ativos}</p>
         </div>
-        <div className={`rounded-xl border p-5 shadow-sm ${aVencer > 0 ? 'border-amber-200 bg-amber-50' : 'border-slate-100 bg-white'}`}>
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-400">A vencer em 30d</p>
-          <p className={`mt-2 text-2xl font-semibold ${aVencer > 0 ? 'text-amber-700' : 'text-slate-900'}`}>{aVencer}</p>
+        <div className={`rounded-xl border px-5 py-[18px] ${aVencer > 0 ? 'border-amber-200 bg-amber-50' : 'border-slate-200 bg-white'}`}>
+          <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">A vencer em 30d</p>
+          <p className={`mt-[6px] mb-0.5 text-[26px] font-bold leading-tight ${aVencer > 0 ? 'text-amber-700' : 'text-slate-900'}`}>{aVencer}</p>
         </div>
       </div>
 
@@ -99,7 +110,7 @@ export default async function ContratosPage() {
         </div>
       )}
 
-      <div className="rounded-xl border border-slate-100 bg-white shadow-sm">
+      <div className="rounded-xl border border-slate-200 bg-white">
         {(contratos ?? []).length === 0 ? (
           <div className="flex items-center justify-center py-16">
             <p className="text-sm text-slate-400">Nenhum contrato registrado ainda</p>
@@ -138,8 +149,10 @@ export default async function ContratosPage() {
                         </span>
                       ) : <span className="text-slate-300">—</span>}
                     </td>
-                    <td className="px-5 py-3 text-right font-semibold text-slate-800">
-                      —
+                    <td className="px-5 py-3 text-right font-semibold text-blue-700">
+                      {mrrPorContrato[c.id]
+                        ? mrrPorContrato[c.id].toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+                        : <span className="text-slate-300 font-normal">—</span>}
                     </td>
                     <td className="px-5 py-3">
                       <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${badge.className}`}>{badge.label}</span>

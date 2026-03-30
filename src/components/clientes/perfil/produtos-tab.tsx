@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useTransition, Fragment } from 'react'
-import { Plus, RefreshCw } from 'lucide-react'
-import { atualizarStatusContratoItem } from '@/app/actions/contratos'
+import { Plus, RefreshCw, Trash2 } from 'lucide-react'
+import { atualizarStatusContratoItem, removerProdutoCliente } from '@/app/actions/contratos'
 import { AdicionarProdutoModal } from './adicionar-produto-modal'
 import { RenovacaoModal } from './renovacao-modal'
 import { RenovacoesHistorico } from './renovacoes-historico'
@@ -77,20 +77,26 @@ export function ProdutosTab({ clienteId, contratoAtivo, produtos, catalogo, ofer
     })
   }
 
+  function handleRemover(item: ProdutoContratadoView) {
+    if (!item.id) return
+    if (!confirm(`Remover "${item.produto_nome}" desta conta?`)) return
+    startTransition(async () => {
+      await removerProdutoCliente(item.id!, clienteId)
+    })
+  }
+
   return (
     <div className="p-6 space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-slate-500">MRR desta conta</p>
-          <p className="text-2xl font-semibold text-slate-900">
+          <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">MRR desta conta</p>
+          <p className="mt-[6px] text-[26px] font-bold leading-tight text-slate-900">
             {mrr.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
           </p>
         </div>
         <button
           onClick={() => setShowAdd(true)}
-          disabled={!contratoAtivo}
-          title={!contratoAtivo ? 'Cliente não possui contrato ativo' : undefined}
-          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
         >
           <Plus className="h-4 w-4" /> Adicionar produto
         </button>
@@ -101,7 +107,7 @@ export function ProdutosTab({ clienteId, contratoAtivo, produtos, catalogo, ofer
           <p className="text-sm text-slate-400">Nenhum produto contratado ainda</p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-100">
+        <div className="overflow-x-auto rounded-xl border border-slate-200">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-100 bg-slate-50/50">
@@ -144,16 +150,28 @@ export function ProdutosTab({ clienteId, contratoAtivo, produtos, catalogo, ofer
                       </select>
                     </td>
                     <td className="px-4 py-3">
-                      {p.produto_tipo !== 'pontual' && p.id && (
-                        <button
-                          onClick={() => setRenovandoItem(p)}
-                          className="flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50"
-                          title="Renovar"
-                        >
-                          <RefreshCw className="h-3 w-3" />
-                          Renovar
-                        </button>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {p.produto_tipo !== 'pontual' && p.id && (
+                          <button
+                            onClick={() => setRenovandoItem(p)}
+                            className="flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50"
+                            title="Renovar"
+                          >
+                            <RefreshCw className="h-3 w-3" />
+                            Renovar
+                          </button>
+                        )}
+                        {p.id && (
+                          <button
+                            onClick={() => handleRemover(p)}
+                            disabled={isPending}
+                            className="rounded-lg border border-red-100 p-1.5 text-red-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-40"
+                            title="Remover produto"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                   {p.produto_tipo !== 'pontual' && p.id && (
@@ -173,16 +191,14 @@ export function ProdutosTab({ clienteId, contratoAtivo, produtos, catalogo, ofer
         </div>
       )}
 
-      {contratoAtivo && (
-        <AdicionarProdutoModal
-          open={showAdd}
-          onClose={() => setShowAdd(false)}
-          contratoId={contratoAtivo.id}
-          clienteId={clienteId}
-          catalogo={catalogo}
-          ofertasMap={ofertasMap}
-        />
-      )}
+      <AdicionarProdutoModal
+        open={showAdd}
+        onClose={() => setShowAdd(false)}
+        contratoId={contratoAtivo?.id ?? null}
+        clienteId={clienteId}
+        catalogo={catalogo}
+        ofertasMap={ofertasMap}
+      />
 
       {renovandoItem && (
         <RenovacaoModal

@@ -45,7 +45,7 @@ export async function updateContratoStatus(clienteId: string, contratoId: string
 }
 
 export async function adicionarProdutoCliente(
-  contratoId: string,
+  contratoId: string | null,
   clienteId: string,
   formData: FormData,
 ) {
@@ -63,9 +63,31 @@ export async function adicionarProdutoCliente(
   const dataInicio = formData.get('data_inicio') as string
   if (!dataInicio) return { error: 'Data de início é obrigatória' }
 
+  // Auto-cria contrato padrão se o cliente não tiver um ativo
+  let resolvedContratoId = contratoId
+  if (!resolvedContratoId) {
+    const numero_contrato = `CONT-${Date.now().toString(36).toUpperCase()}`
+    const { data: novoContrato, error: errContrato } = await supabase
+      .from('contratos')
+      .insert({
+        agencia_id:      profile.agencia_id,
+        cliente_id:      clienteId,
+        numero_contrato,
+        tipo:            'servico',
+        data_assinatura: dataInicio,
+        data_ativacao:   dataInicio,
+        forma_pagamento: 'pix',
+        status:          'ativo',
+      })
+      .select('id')
+      .single()
+    if (errContrato || !novoContrato) return { error: errContrato?.message ?? 'Erro ao criar contrato' }
+    resolvedContratoId = novoContrato.id
+  }
+
   const { error } = await supabase.from('contrato_itens').insert({
     agencia_id:       profile.agencia_id,
-    contrato_id:      contratoId,
+    contrato_id:      resolvedContratoId,
     produto_id:       produtoId,
     oferta_id:        ofertaId,
     valor_negociado:  parseFloat(valorStr),
@@ -73,6 +95,15 @@ export async function adicionarProdutoCliente(
     status:           'ativo' as ProdutoStatus,
   })
 
+  if (error) return { error: error.message }
+  revalidatePath(`/clientes/${clienteId}`)
+  revalidatePath('/contratos')
+  return { success: true }
+}
+
+export async function removerProdutoCliente(itemId: string, clienteId: string) {
+  const supabase = await createClient()
+  const { error } = await supabase.from('contrato_itens').delete().eq('id', itemId)
   if (error) return { error: error.message }
   revalidatePath(`/clientes/${clienteId}`)
   revalidatePath('/contratos')

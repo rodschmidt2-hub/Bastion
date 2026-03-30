@@ -22,7 +22,7 @@ export function NotaFinanceira({ clienteId, nota }: { clienteId: string; nota: s
   }, [value])
 
   return (
-    <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
+    <div className="rounded-xl border border-slate-200 bg-white p-5">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-slate-800">Notas Financeiras Internas</h3>
         {saved && <span className="text-xs text-emerald-600">Salvo ✓</span>}

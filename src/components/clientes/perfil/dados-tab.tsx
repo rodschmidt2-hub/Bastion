@@ -1,10 +1,6 @@
 'use client'
 
-import { useState } from 'react'
-import { Pencil, UserX, UserCheck } from 'lucide-react'
-import { ClienteDrawer } from '@/components/clientes/cliente-drawer'
 import { ContatosSection } from '@/components/clientes/perfil/contatos-section'
-import { DesativarModal } from '@/components/clientes/perfil/desativar-modal'
 import { HistoricoStatusSection } from '@/components/clientes/perfil/historico-status-section'
 import type { Cliente, ContatoCliente, Profile } from '@/types/database'
 
@@ -20,116 +16,69 @@ interface DadosTabProps {
 }
 
 export function DadosTab({ cliente, responsaveis, historico, contatos, eventosStatus = [] }: DadosTabProps) {
-  const [editOpen, setEditOpen] = useState(false)
-  const [statusModal, setStatusModal] = useState<'desativar' | 'reativar' | null>(null)
   const responsavel = responsaveis.find((r) => r.id === cliente.responsavel_id)
-  const isInativo = ['inativo', 'suspenso', 'cancelado'].includes(cliente.status)
 
   return (
-    <>
-      <div className="space-y-6 p-6">
-        <div className="flex justify-end gap-2">
-          {isInativo ? (
-            <button
-              onClick={() => setStatusModal('reativar')}
-              className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-700 hover:bg-emerald-100"
-            >
-              <UserCheck className="h-3.5 w-3.5" />
-              Reativar
-            </button>
-          ) : (
-            <button
-              onClick={() => setStatusModal('desativar')}
-              className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-100"
-            >
-              <UserX className="h-3.5 w-3.5" />
-              Desativar
-            </button>
-          )}
-          <button
-            onClick={() => setEditOpen(true)}
-            className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50"
-          >
-            <Pencil className="h-3.5 w-3.5" />
-            Editar dados
-          </button>
-        </div>
+    <div className="space-y-6 p-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Section title="Clínica">
+          <Row label="CNPJ" value={cliente.cnpj} />
+          <Row label="Segmento" value={cliente.segmento ? segmentoLabel[cliente.segmento as keyof typeof segmentoLabel] ?? cliente.segmento : null} />
+          <Row label="Porte" value={cliente.porte ? porteLabel[cliente.porte as keyof typeof porteLabel] : null} />
+        </Section>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <Section title="Clínica">
-            <Row label="CNPJ" value={cliente.cnpj} />
-            <Row label="Segmento" value={cliente.segmento ? segmentoLabel[cliente.segmento as keyof typeof segmentoLabel] ?? cliente.segmento : null} />
-            <Row label="Porte" value={cliente.porte ? porteLabel[cliente.porte as keyof typeof porteLabel] : null} />
-          </Section>
+        <Section title="Endereço">
+          <Row label="Logradouro" value={cliente.logradouro} />
+          <Row label="Cidade / Estado" value={
+            [cliente.cidade, cliente.uf].filter(Boolean).join(' / ') || null
+          } />
+          <Row label="CEP" value={cliente.cep} />
+        </Section>
 
-          <Section title="Endereço">
-            <Row label="Logradouro" value={cliente.logradouro} />
-            <Row label="Cidade / Estado" value={
-              [cliente.cidade, cliente.uf].filter(Boolean).join(' / ') || null
-            } />
-            <Row label="CEP" value={cliente.cep} />
-          </Section>
+        <Section title="Responsável financeiro">
+          <Row label="Nome" value={cliente.resp_financeiro_nome} />
+          <Row label="Email" value={cliente.resp_financeiro_email} />
+          <Row label="Telefone" value={cliente.resp_financeiro_telefone} />
+        </Section>
 
-          <Section title="Responsável financeiro">
-            <Row label="Nome" value={cliente.resp_financeiro_nome} />
-            <Row label="Email" value={cliente.resp_financeiro_email} />
-            <Row label="Telefone" value={cliente.resp_financeiro_telefone} />
-          </Section>
+        <Section title="Decisor / Dono">
+          <Row label="Nome" value={cliente.decisor_nome} />
+          <Row label="Email" value={cliente.decisor_email} />
+          <Row label="Telefone" value={cliente.decisor_telefone} />
+        </Section>
 
-          <Section title="Decisor / Dono">
-            <Row label="Nome" value={cliente.decisor_nome} />
-            <Row label="Email" value={cliente.decisor_email} />
-            <Row label="Telefone" value={cliente.decisor_telefone} />
-          </Section>
-
-          <Section title="Gestão interna">
-            <Row label="Responsável" value={responsavel?.nome ?? responsavel?.email ?? null} />
-            <Row label="Observações" value={cliente.observacoes} />
-          </Section>
-        </div>
-
-        <ContatosSection clienteId={cliente.id} contatos={contatos} />
-
-        <HistoricoStatusSection eventos={eventosStatus} />
-
-        {historico.length > 0 && (
-          <div>
-            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Histórico de responsáveis</h3>
-            <div className="space-y-2">
-              {historico.map((h, i) => (
-                <div key={i} className="flex items-center gap-2 text-sm text-slate-500">
-                  <span className="text-xs text-slate-300">{new Date(h.created_at).toLocaleDateString('pt-BR')}</span>
-                  <span>{h.responsavel_anterior?.nome ?? h.responsavel_anterior?.email ?? 'Sem responsável'}</span>
-                  <span className="text-slate-300">→</span>
-                  <span className="font-medium text-slate-700">{h.responsavel_novo?.nome ?? h.responsavel_novo?.email ?? 'Sem responsável'}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        <Section title="Gestão interna">
+          <Row label="Responsável" value={responsavel?.nome ?? responsavel?.email ?? null} />
+          <Row label="Observações" value={cliente.observacoes} />
+        </Section>
       </div>
 
-      <ClienteDrawer
-        open={editOpen}
-        onClose={() => setEditOpen(false)}
-        cliente={cliente}
-        responsaveis={responsaveis}
-      />
+      <ContatosSection clienteId={cliente.id} contatos={contatos} />
 
-      {statusModal && (
-        <DesativarModal
-          clienteId={cliente.id}
-          modo={statusModal}
-          onClose={() => setStatusModal(null)}
-        />
+      <HistoricoStatusSection eventos={eventosStatus} />
+
+      {historico.length > 0 && (
+        <div>
+          <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Histórico de responsáveis</h3>
+          <div className="space-y-2">
+            {historico.map((h, i) => (
+              <div key={i} className="flex items-center gap-2 text-sm text-slate-500">
+                <span className="text-xs text-slate-300">{new Date(h.created_at).toLocaleDateString('pt-BR')}</span>
+                <span>{h.responsavel_anterior?.nome ?? h.responsavel_anterior?.email ?? 'Sem responsável'}</span>
+                <span className="text-slate-300">→</span>
+                <span className="font-medium text-slate-700">{h.responsavel_novo?.nome ?? h.responsavel_novo?.email ?? 'Sem responsável'}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
-    </>
+    </div>
   )
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4">
+    <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
       <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">{title}</h3>
       <dl className="space-y-2">{children}</dl>
     </div>
