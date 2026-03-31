@@ -62,7 +62,7 @@ export function Sidebar({ role, nome }: SidebarProps) {
         <div className="space-y-0.5 mb-4">
           <NavItem href="/contratos" icon={FileText} label="Contratos" />
           <NavItem href="/financeiro" icon={Wallet} label="Financeiro" />
-          <NavItem href="/documentos" icon={FolderOpen} label="Documentos" />
+          <NavItem href="/modelos" icon={FolderOpen} label="Modelos" />
           {isAdmin && <NavItem href="/produtos" icon={Package} label="Catálogo de Produtos" />}
         </div>
 

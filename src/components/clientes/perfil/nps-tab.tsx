@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { Plus, Trash2, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { createNpsRegistro, deleteNpsRegistro } from '@/app/actions/nps'
+import { TooltipInfo } from '@/components/ui/tooltip-info'
 import type { NpsRegistro, UserRole } from '@/types/database'
 
 type NpsRegistroWithResponsavel = NpsRegistro & {
@@ -66,7 +67,10 @@ export function NpsTab({ clienteId, registros, userRole }: NpsTabProps) {
             <span className={`text-3xl font-bold ${npsZone(ultimo.score).text}`}>{ultimo.score}</span>
           </div>
           <div>
-            <p className={`text-sm font-semibold ${npsZone(ultimo.score).text}`}>{npsZone(ultimo.score).label}</p>
+            <div className="flex items-center gap-1.5">
+              <p className={`text-sm font-semibold ${npsZone(ultimo.score).text}`}>{npsZone(ultimo.score).label}</p>
+              <TooltipInfo text="NPS: 0–6 = Detrator (insatisfeito, risco de churn), 7–8 = Neutro (não indica ativamente), 9–10 = Promotor (recomenda a agência)." />
+            </div>
             <p className="mt-0.5 text-xs text-slate-400">
               Score atual · {new Date(ultimo.data_registro).toLocaleDateString('pt-BR')}
             </p>

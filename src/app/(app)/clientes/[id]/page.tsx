@@ -15,6 +15,7 @@ import { NpsTab } from '@/components/clientes/perfil/nps-tab'
 import { HealthScoreBadge } from '@/components/clientes/health-score-badge'
 import { calcularHealthScore } from '@/lib/health-score'
 import type { Cliente, Profile, ProdutoContratadoView, ProdutoAgencia, ProdutoOferta, Contrato, Documento, ContatoCliente, NpsRegistro, Renovacao, UserRole } from '@/types/database'
+import type { ModeloItem } from '@/app/actions/gerar-documento'
 
 const statusBadge: Record<string, string> = {
   ativo:              'bg-emerald-50 text-emerald-700',
@@ -59,6 +60,7 @@ export default async function ClientePerfilPage({
     { data: contratos },
     { data: faturas },
     { data: documentos },
+    { data: modelosDocumento },
     { data: historico },
     { data: contatos },
     { data: npsRegistros },
@@ -74,6 +76,7 @@ export default async function ClientePerfilPage({
       .eq('cliente_id', id)
       .order('data_vencimento', { ascending: false }),
     supabase.from('documentos_cliente').select('*').eq('cliente_id', id).order('created_at', { ascending: false }),
+    supabase.from('modelos_documento').select('id, nome, tipo, descricao').eq('ativo', true).order('nome'),
     supabase
       .from('historico_responsaveis')
       .select('created_at, responsavel_anterior:responsavel_anterior_id(nome, email), responsavel_novo:responsavel_novo_id(nome, email)')
@@ -101,18 +104,37 @@ export default async function ClientePerfilPage({
 
   // Busca renovações para os itens contratados deste cliente
   const itemIds = (produtos ?? []).map((p) => p.id).filter(Boolean) as string[]
-  const { data: renovacoesData } = itemIds.length > 0
-    ? await supabase
-        .from('renovacoes')
-        .select('*, renovado_por_perfil:profiles!renovacoes_renovado_por_fkey(nome)')
-        .in('contrato_item_id', itemIds)
-        .order('created_at', { ascending: false })
-    : { data: [] as any[] }
+  const [
+    { data: renovacoesData },
+    { data: alteracoesData },
+  ] = await Promise.all([
+    itemIds.length > 0
+      ? supabase
+          .from('renovacoes')
+          .select('*, renovado_por_perfil:profiles!renovacoes_renovado_por_fkey(nome)')
+          .in('contrato_item_id', itemIds)
+          .order('created_at', { ascending: false })
+      : Promise.resolve({ data: [] as any[] }),
+    supabase
+      .from('alteracoes_produto')
+      .select('*, alterado_por_perfil:profiles(nome)')
+      .eq('cliente_id', id)
+      .order('created_at', { ascending: false }),
+  ])
 
   const renovacoesMap: Record<string, any[]> = {}
   for (const r of (renovacoesData ?? [])) {
     if (!renovacoesMap[r.contrato_item_id]) renovacoesMap[r.contrato_item_id] = []
     renovacoesMap[r.contrato_item_id].push(r)
+  }
+
+  // Mapa de alterações por item_anterior_id (origem da alteração)
+  const alteracoesMap: Record<string, any[]> = {}
+  for (const a of (alteracoesData ?? [])) {
+    const key = a.item_anterior_id ?? a.item_novo_id
+    if (!key) continue
+    if (!alteracoesMap[key]) alteracoesMap[key] = []
+    alteracoesMap[key].push(a)
   }
 
   const ofertasMap: Record<string, ProdutoOferta[]> = {}
@@ -262,6 +284,7 @@ export default async function ClientePerfilPage({
               catalogo={(catalogo ?? []) as ProdutoAgencia[]}
               ofertasMap={ofertasMap}
               renovacoesMap={renovacoesMap}
+              alteracoesMap={alteracoesMap}
               userRole={profile?.role ?? 'operacional'}
             />
           )}
@@ -303,6 +326,7 @@ export default async function ClientePerfilPage({
             <DocumentosTab
               clienteId={id}
               documentos={(documentos ?? []) as Documento[]}
+              modelos={(modelosDocumento ?? []) as ModeloItem[]}
             />
           )}
           {tab === 'nps' && (

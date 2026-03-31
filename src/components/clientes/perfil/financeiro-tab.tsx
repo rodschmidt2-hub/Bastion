@@ -1,9 +1,11 @@
 'use client'
 
 import { useState, useTransition, Fragment } from 'react'
-import { Plus, X, CreditCard } from 'lucide-react'
+import { Plus, X, CreditCard, Handshake } from 'lucide-react'
 import { gerarFatura, registrarPagamento } from '@/app/actions/faturas'
 import { ExportCsvButton } from '@/components/financeiro/export-csv-button'
+import { TooltipInfo } from '@/components/ui/tooltip-info'
+import { AcordoDrawer } from '@/components/acordos/acordo-drawer'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -320,7 +322,10 @@ function PontualidadeCard({ itens }: { itens: PontualidadeItem[] }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4">
       <div className="flex items-center justify-between mb-1">
-        <p className="text-xs font-semibold text-slate-700">Pontualidade</p>
+        <div className="flex items-center gap-1.5">
+          <p className="text-xs font-semibold text-slate-700">Pontualidade</p>
+          <TooltipInfo text="Histórico de pagamentos: verde = pago no prazo, amarelo = 1–5 dias de atraso, vermelho = mais de 5 dias de atraso ou não pago." />
+        </div>
         {score !== null && <span className={`text-sm font-bold ${scoreColor}`}>{score}%</span>}
       </div>
       <p className="text-xs text-slate-400 mb-3">Últimos {total} pagamentos</p>
@@ -357,6 +362,7 @@ export function FinanceiroTab({
 }: FinanceiroTabProps) {
   const [isPending, startTransition] = useTransition()
   const [showForm, setShowForm] = useState(false)
+  const [showAcordo, setShowAcordo] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [pagandoFatura, setPagandoFatura] = useState<string | null>(null)
   const [tlFilter, setTlFilter] = useState<TlFilter>('todos')
@@ -415,12 +421,18 @@ export function FinanceiroTab({
       {/* ── KPI Row 1 ─────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-4 gap-3">
         <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-[14px]">
-          <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">LTV Acumulado</p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">LTV Acumulado</p>
+            <TooltipInfo text="Total efetivamente recebido deste cliente desde o início do relacionamento. Reflete o valor real gerado — não uma projeção." />
+          </div>
           <p className="mt-[6px] mb-0.5 text-[26px] font-bold leading-tight text-slate-900">{fmt(ltv)}</p>
           <p className="text-[11px] text-slate-400">{tenureMeses} meses de relacionamento</p>
         </div>
         <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-[14px]">
-          <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-blue-400">ARR do Cliente</p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-blue-400">ARR do Cliente</p>
+            <TooltipInfo text="Annual Recurring Revenue — projeção anual baseada no MRR atual deste cliente (MRR × 12). Útil para planejamento de receita." />
+          </div>
           <p className="mt-[6px] mb-0.5 text-[26px] font-bold leading-tight text-blue-700">{fmt(arr)}</p>
           <p className="text-[11px] text-blue-400">MRR {fmt(mrr)} × 12</p>
         </div>
@@ -444,7 +456,10 @@ export function FinanceiroTab({
           </div>
         )}
         <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-[14px]">
-          <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">Margem</p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">Margem</p>
+            <TooltipInfo text="Margem de contribuição — percentual da receita que sobra após subtrair o custo base dos produtos entregues. Quanto maior, mais lucrativo." />
+          </div>
           <p className="mt-[6px] mb-0.5 text-[26px] font-bold leading-tight text-slate-900">
             {metricas?.margem != null ? `${metricas.margem.toFixed(0)}%` : '—'}
           </p>
@@ -455,11 +470,17 @@ export function FinanceiroTab({
       {/* ── KPI Row 2 ─────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1.4fr] gap-3">
         <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-[14px]">
-          <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">CAC</p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">CAC</p>
+            <TooltipInfo text="Customer Acquisition Cost — custo total para adquirir este cliente (prospecção, proposta, onboarding). Editável pelo admin." />
+          </div>
           <p className="mt-[6px] mb-0.5 text-[20px] font-bold leading-tight text-slate-900">{cac != null ? fmt(cac) : '—'}</p>
         </div>
         <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-[14px]">
-          <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">LTV / CAC</p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">LTV / CAC</p>
+            <TooltipInfo text="Ratio de retorno sobre aquisição. Abaixo de 1.5× = prejuízo, 1.5–3× = atenção, acima de 3× = saudável." />
+          </div>
           <div className="mt-[6px] mb-0.5 flex items-center gap-2">
             <p className={`text-[20px] font-bold leading-tight ${ltvCac !== null && ltvCac >= 3 ? 'text-emerald-700' : ltvCac !== null && ltvCac >= 1.5 ? 'text-amber-600' : 'text-slate-900'}`}>
               {ltvCac != null ? `${ltvCac.toFixed(1)}×` : '—'}
@@ -469,14 +490,20 @@ export function FinanceiroTab({
           <p className="text-[11px] text-slate-400">Benchmark: ≥ 3×</p>
         </div>
         <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-[14px]">
-          <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">Payback</p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">Payback</p>
+            <TooltipInfo text="Quantos meses para recuperar o investimento de aquisição deste cliente. Calculado como CAC ÷ MRR. Até 12 meses é considerado bom." />
+          </div>
           <p className="mt-[6px] mb-0.5 text-[20px] font-bold leading-tight text-amber-600">
             {payback != null ? `~${payback} ${payback === 1 ? 'mês' : 'meses'}` : '—'}
           </p>
           <p className="text-[11px] text-slate-400">CAC ÷ MRR</p>
         </div>
         <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-[14px]">
-          <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">Tenure</p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">Tenure</p>
+            <TooltipInfo text="Tempo de relacionamento com este cliente em meses, contado a partir da data de início do relacionamento ou cadastro." />
+          </div>
           <p className="mt-[6px] mb-0.5 text-[20px] font-bold leading-tight text-slate-900">{tenureMeses} meses</p>
           <p className="text-[11px] text-slate-400">
             {metricas?.dataInicioRelac
@@ -486,7 +513,10 @@ export function FinanceiroTab({
         </div>
         {/* Notas Financeiras */}
         <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-[14px]">
-          <p className="text-xs text-slate-400 uppercase tracking-wide mb-1.5">Notas Financeiras</p>
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <p className="text-xs text-slate-400 uppercase tracking-wide">Notas Financeiras</p>
+            <TooltipInfo text="Observações internas sobre a situação financeira deste cliente. Visíveis apenas pela equipe — não aparecem para o cliente." />
+          </div>
           <p className="text-xs text-slate-600 italic leading-relaxed line-clamp-3">
             {notaFinanceira || 'Sem notas registradas.'}
           </p>
@@ -548,6 +578,14 @@ export function FinanceiroTab({
         <h3 className="text-sm font-semibold text-slate-800">Histórico Financeiro</h3>
         <div className="flex items-center gap-2">
           <ExportCsvButton clienteId={clienteId} />
+          {(metricas?.userRole === 'admin' || metricas?.userRole === 'gestor') && (
+            <button
+              onClick={() => setShowAcordo(true)}
+              className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50"
+            >
+              <Handshake className="h-3.5 w-3.5" /> Novo acordo
+            </button>
+          )}
           <button
             onClick={() => setShowForm(!showForm)}
             className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50"
@@ -723,6 +761,13 @@ export function FinanceiroTab({
           onClose={() => setPagandoFatura(null)}
         />
       )}
+
+      <AcordoDrawer
+        open={showAcordo}
+        onClose={() => setShowAcordo(false)}
+        clienteId={clienteId}
+        faturasPendentes={faturas.filter((f) => f.status === 'atrasado' || f.status === 'pendente')}
+      />
     </div>
   )
 }

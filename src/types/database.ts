@@ -34,6 +34,8 @@ export type EventoCliente = Tables<'eventos_cliente'>
 // ── Catálogo de Produtos ─────────────────────────────────────────────────────
 export type ProdutoAgencia = Tables<'produtos_agencia'>
 export type ProdutoOferta = Tables<'produto_ofertas'>
+export type CategoriaProduto = Tables<'categorias_produto'>
+export type ModeloDocumento = Tables<'modelos_documento'>
 
 // ── Contratos ────────────────────────────────────────────────────────────────
 export type ContratoStatus = Enums<'contrato_status'>

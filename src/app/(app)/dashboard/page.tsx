@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Users, Wallet, AlertTriangle, Star, RefreshCw, TrendingUp, TrendingDown, BarChart2, Download } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { MrrHistoricoChart } from '@/components/financeiro/mrr-historico-chart'
+import { TooltipInfo } from '@/components/ui/tooltip-info'
 import type { Contrato } from '@/types/database'
 
 function daysUntil(dateStr: string): number {
@@ -30,12 +31,14 @@ function KpiCard({
   sub,
   color = 'default',
   highlight = false,
+  tooltip,
 }: {
   label: string
   value: React.ReactNode
   sub?: React.ReactNode
   color?: 'default' | 'green' | 'red' | 'amber' | 'blue'
   highlight?: boolean
+  tooltip?: string
 }) {
   const valueCls = {
     default: 'text-slate-900',
@@ -47,7 +50,10 @@ function KpiCard({
 
   return (
     <div className={`rounded-xl border px-5 py-[18px] ${highlight ? 'border-blue-200 bg-blue-50' : 'border-slate-200 bg-white'}`}>
-      <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">{label}</p>
+      <div className="flex items-center gap-1.5">
+        <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">{label}</p>
+        {tooltip && <TooltipInfo text={tooltip} />}
+      </div>
       <p className={`mt-[6px] mb-0.5 text-[26px] font-bold leading-tight ${valueCls}`}>{value}</p>
       {sub && <p className="text-[11px] text-slate-400">{sub}</p>}
     </div>
@@ -59,11 +65,13 @@ function KpiCardAlert({
   value,
   sub,
   variant = 'red',
+  tooltip,
 }: {
   label: string
   value: React.ReactNode
   sub?: React.ReactNode
   variant?: 'red' | 'amber'
+  tooltip?: string
 }) {
   const cls = variant === 'red'
     ? 'border-red-200 bg-red-50'
@@ -71,7 +79,10 @@ function KpiCardAlert({
   const valCls = variant === 'red' ? 'text-red-700' : 'text-amber-700'
   return (
     <div className={`rounded-xl border px-5 py-[18px] ${cls}`}>
-      <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">{label}</p>
+      <div className="flex items-center gap-1.5">
+        <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">{label}</p>
+        {tooltip && <TooltipInfo text={tooltip} />}
+      </div>
       <p className={`mt-[6px] mb-0.5 text-[26px] font-bold leading-tight ${valCls}`}>{value}</p>
       {sub && <p className="text-[11px] text-slate-400">{sub}</p>}
     </div>
@@ -267,16 +278,16 @@ export default async function DashboardPage() {
       <div>
         <SectionLabel>Receita</SectionLabel>
         <div className="grid grid-cols-2 gap-4 xl:grid-cols-4 mb-4">
-          <KpiCard label="MRR Total" value={fmt(mrrTotal)} sub={`ARR: ${fmt(arrTotal)}`} color="blue" highlight />
-          <KpiCard label="ARR" value={fmt(arrTotal)} sub="MRR × 12" color="blue" highlight />
-          <KpiCard label="LTV Acumulado" value={fmt(ltvAcumulado)} sub="Histórico confirmado" />
-          <KpiCard label="Ticket Médio" value={ticketMedio > 0 ? fmt(ticketMedio) : '—'} sub={`MRR ÷ ${clientesAtivos} clientes ativos`} />
+          <KpiCard label="MRR Total" value={fmt(mrrTotal)} sub={`ARR: ${fmt(arrTotal)}`} color="blue" highlight tooltip="Monthly Recurring Revenue — soma de todos os produtos recorrentes ativos. É a principal métrica de saúde da agência." />
+          <KpiCard label="ARR" value={fmt(arrTotal)} sub="MRR × 12" color="blue" highlight tooltip="Annual Recurring Revenue — projeção anual da receita recorrente (MRR × 12). Útil para comparar com outras agências." />
+          <KpiCard label="LTV Acumulado" value={fmt(ltvAcumulado)} sub="Histórico confirmado" tooltip="Life Time Value acumulado — total efetivamente recebido de todos os clientes até hoje. Reflete o valor real gerado." />
+          <KpiCard label="Ticket Médio" value={ticketMedio > 0 ? fmt(ticketMedio) : '—'} sub={`MRR ÷ ${clientesAtivos} clientes ativos`} tooltip="Receita média por cliente ativo. Calculado dividindo o MRR total pelo número de clientes ativos." />
         </div>
         <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
-          <KpiCard label="Recorrente (MRR)" value={fmt(mrrRecorrente)} sub="Receita mensal recorrente" color="green" />
-          <KpiCard label="Pontual (one-time)" value={fmt(mrrPontual)} sub="Serviços avulsos ativos" />
-          <KpiCard label="CAC Médio" value={cacMedio ? fmt(cacMedio) : '—'} sub={cacMedio ? `${clientesComCAC.length} clientes com CAC` : 'Sem dados'} />
-          <KpiCard label="Clientes Ativos" value={clientesAtivos} sub={`+${clientesNovos} novos este mês`} />
+          <KpiCard label="Recorrente (MRR)" value={fmt(mrrRecorrente)} sub="Receita mensal recorrente" color="green" tooltip="Parcela do MRR proveniente de produtos do tipo recorrente (assinaturas mensais)." />
+          <KpiCard label="Pontual (one-time)" value={fmt(mrrPontual)} sub="Serviços avulsos ativos" tooltip="Receita de serviços avulsos ou pontuais ainda vigentes. Não é recorrente mês a mês." />
+          <KpiCard label="CAC Médio" value={cacMedio ? fmt(cacMedio) : '—'} sub={cacMedio ? `${clientesComCAC.length} clientes com CAC` : 'Sem dados'} tooltip="Customer Acquisition Cost médio — quanto custou, em média, adquirir cada cliente. Inclui prospecção, onboarding e vendas." />
+          <KpiCard label="Clientes Ativos" value={clientesAtivos} sub={`+${clientesNovos} novos este mês`} tooltip="Total de clientes com status Ativo. Novos = clientes cadastrados no mês corrente." />
         </div>
       </div>
 
@@ -290,24 +301,28 @@ export default async function DashboardPage() {
             sub={nrr >= 100 ? 'crescimento orgânico' : nrr >= 80 ? 'saudável' : 'atenção'}
             color={nrrColor}
             highlight={nrr >= 100}
+            tooltip="Net Revenue Retention — mede se a receita dos clientes existentes cresceu ou encolheu. Acima de 100% significa crescimento sem novos clientes."
           />
           <KpiCard
             label="Expansion MRR"
             value={expansionMrr > 0 ? `+ ${fmt(expansionMrr)}` : fmt(expansionMrr)}
             sub="Upsell + reajustes"
             color={expansionMrr > 0 ? 'green' : 'default'}
+            tooltip="Receita adicional gerada por upsell (clientes que contrataram mais serviços) e reajustes de valor no mês."
           />
           <KpiCard
             label="Contraction MRR"
             value={contractionMrr > 0 ? `- ${fmt(contractionMrr)}` : fmt(contractionMrr)}
             sub="Reduções de serviço"
             color={contractionMrr > 0 ? 'amber' : 'default'}
+            tooltip="Redução de receita de clientes que fizeram downgrade ou tiveram desconto no mês. Não inclui cancelamentos."
           />
           <KpiCard
             label="Taxa de Renovação"
             value={taxaRenovacao !== null ? fmtPct(taxaRenovacao) : '—'}
             sub={`${contratosVencendo.length} contrato${contratosVencendo.length !== 1 ? 's' : ''} vencendo em 30d`}
             color={taxaRenovacao !== null && taxaRenovacao >= 80 ? 'green' : 'amber'}
+            tooltip="Percentual de contratos ativos que não estão vencendo nos próximos 30 dias. Abaixo de 80% requer atenção comercial."
           />
         </div>
       </div>
@@ -317,7 +332,10 @@ export default async function DashboardPage() {
         <SectionLabel>Aquisição e Saúde</SectionLabel>
         <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
           <div className="rounded-xl border border-slate-200 bg-white px-5 py-[18px]">
-            <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">LTV / CAC</p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">LTV / CAC</p>
+              <TooltipInfo text="Relação entre o valor gerado por um cliente (LTV) e o custo para adquiri-lo (CAC). Abaixo de 3× é ruim, 3–5× é saudável, acima de 5× é ótimo." />
+            </div>
             <div className="mt-[6px] mb-0.5 flex items-center gap-2">
               <p className={`text-[26px] font-bold leading-tight ${ltvCac !== null ? (ltvCac >= 3 ? 'text-emerald-700' : ltvCac >= 1.5 ? 'text-amber-600' : 'text-red-600') : 'text-slate-900'}`}>
                 {ltvCac !== null ? `${ltvCac.toFixed(1)}×` : '—'}
@@ -333,18 +351,21 @@ export default async function DashboardPage() {
             value={paybackMeses !== null ? `${paybackMeses} meses` : '—'}
             sub="CAC ÷ ticket médio"
             color={paybackMeses !== null && paybackMeses <= 12 ? 'green' : paybackMeses !== null ? 'amber' : 'default'}
+            tooltip="Tempo médio para recuperar o custo de aquisição de um cliente. Calculado como CAC ÷ ticket médio. Até 12 meses é bom."
           />
           <KpiCard
             label="NPS Médio"
             value={npsMedia !== null ? npsMedia.toFixed(1) : '—'}
             sub={npsAlertas.length > 0 ? `${npsAlertas.length} cliente${npsAlertas.length > 1 ? 's' : ''} com NPS ≤ 6 ⚠️` : `${npsArr.length} resposta${npsArr.length !== 1 ? 's' : ''}`}
             color={npsColor}
+            tooltip="Net Promoter Score médio da base. 0–6 = detrator (risco de churn), 7–8 = neutro, 9–10 = promotor (indica a agência)."
           />
           <KpiCard
             label="Churn MRR"
             value={churnMrr > 0 ? `- ${fmt(churnMrr)}` : fmt(churnMrr)}
             sub={`${clientesInativados.length} inativado${clientesInativados.length !== 1 ? 's' : ''} este mês`}
             color={churnMrr > 0 ? 'red' : 'default'}
+            tooltip="Receita perdida no mês por clientes que cancelaram ou foram inativados. Deve ser monitorado mensalmente."
           />
         </div>
       </div>
@@ -354,16 +375,16 @@ export default async function DashboardPage() {
         <SectionLabel>Alertas</SectionLabel>
         <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
           {clientesInadimp.length > 0
-            ? <KpiCardAlert label="Inadimplentes" value={clientesInadimp.length} sub={`${fmt(emAberto)} em aberto`} variant="red" />
-            : <KpiCard label="Inadimplentes" value="0" sub="Nenhum cliente inadimplente" color="green" />
+            ? <KpiCardAlert label="Inadimplentes" value={clientesInadimp.length} sub={`${fmt(emAberto)} em aberto`} variant="red" tooltip="Clientes com faturas vencidas e não pagas. Requerem ação de cobrança imediata." />
+            : <KpiCard label="Inadimplentes" value="0" sub="Nenhum cliente inadimplente" color="green" tooltip="Clientes com faturas vencidas e não pagas." />
           }
           {contratosVencendo.length > 0
-            ? <KpiCardAlert label="Renovações em 30d" value={contratosVencendo.length} sub={`${contratosVencendo.filter(c => daysUntil(c.data_fim!) <= 7).length} críticas (≤ 7 dias)`} variant="amber" />
-            : <KpiCard label="Renovações em 30d" value="0" sub="Nenhum contrato crítico" color="green" />
+            ? <KpiCardAlert label="Renovações em 30d" value={contratosVencendo.length} sub={`${contratosVencendo.filter(c => daysUntil(c.data_fim!) <= 7).length} críticas (≤ 7 dias)`} variant="amber" tooltip="Contratos que vencem nos próximos 30 dias. Críticos = vencem em até 7 dias." />
+            : <KpiCard label="Renovações em 30d" value="0" sub="Nenhum contrato crítico" color="green" tooltip="Contratos que vencem nos próximos 30 dias." />
           }
           {emAberto > 0
-            ? <KpiCardAlert label="Em Aberto" value={fmt(emAberto)} sub={`${(faturas ?? []).length} fatura${(faturas ?? []).length !== 1 ? 's' : ''} pendente${(faturas ?? []).length !== 1 ? 's' : ''}`} variant="red" />
-            : <KpiCard label="Em Aberto" value={fmt(0)} sub="Sem faturas em atraso" color="green" />
+            ? <KpiCardAlert label="Em Aberto" value={fmt(emAberto)} sub={`${(faturas ?? []).length} fatura${(faturas ?? []).length !== 1 ? 's' : ''} pendente${(faturas ?? []).length !== 1 ? 's' : ''}`} variant="red" tooltip="Soma de todas as faturas pendentes, parciais ou atrasadas que ainda não foram pagas." />
+            : <KpiCard label="Em Aberto" value={fmt(0)} sub="Sem faturas em atraso" color="green" tooltip="Soma de todas as faturas pendentes ou atrasadas." />
           }
           {npsBaixoCount > 0
             ? <KpiCardAlert label="NPS Baixo (≤ 6)" value={npsBaixoCount} sub="Risco de churn — contato urgente" variant="amber" />

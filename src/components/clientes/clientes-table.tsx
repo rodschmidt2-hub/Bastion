@@ -28,7 +28,7 @@ const porteLabel: Record<string, string> = {
 }
 
 function formatMes(dateStr: string): string {
-  const d = new Date(dateStr + 'T12:00:00')
+  const d = new Date(dateStr.includes('T') ? dateStr : dateStr + 'T12:00:00')
   const month = d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')
   const year = String(d.getFullYear()).slice(2)
   return `${month.charAt(0).toUpperCase() + month.slice(1)}/${year}`

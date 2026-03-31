@@ -3,6 +3,7 @@
 import { useState, useTransition, useRef } from 'react'
 import { Plus, Pencil, Trash2, Star, X, Check } from 'lucide-react'
 import { createContato, updateContato, deleteContato, setPrincipal } from '@/app/actions/contatos'
+import { TooltipInfo } from '@/components/ui/tooltip-info'
 import type { ContatoCliente } from '@/types/database'
 
 interface ContatosSectionProps {
@@ -96,16 +97,19 @@ function ContatoForm({ clienteId, contato, onDone }: ContatoFormProps) {
           name="is_principal"
           label="Principal"
           defaultChecked={contato?.is_principal ?? false}
+          tooltip="Contato principal da conta. Aparece destacado e é o padrão para comunicações gerais."
         />
         <CheckboxField
           name="is_cobranca"
           label="Cobrança"
           defaultChecked={contato?.is_cobranca ?? false}
+          tooltip="Recebe faturas, boletos e lembretes de pagamento. Pode ser o responsável financeiro da clínica."
         />
         <CheckboxField
           name="is_nfe"
           label="NF-e"
           defaultChecked={contato?.is_nfe ?? false}
+          tooltip="Recebe as Notas Fiscais Eletrônicas emitidas pela agência. Normalmente o responsável fiscal ou contador."
         />
       </div>
 
@@ -135,14 +139,16 @@ function CheckboxField({
   name,
   label,
   defaultChecked,
+  tooltip,
 }: {
   name: string
   label: string
   defaultChecked: boolean
+  tooltip?: string
 }) {
   const [checked, setChecked] = useState(defaultChecked)
   return (
-    <label className="flex cursor-pointer items-center gap-1.5 text-sm text-slate-600 select-none">
+    <div className="flex cursor-pointer items-center gap-1.5 select-none">
       <input type="hidden" name={name} value={checked ? 'true' : 'false'} />
       <button
         type="button"
@@ -155,8 +161,9 @@ function CheckboxField({
       >
         <Check className="h-2.5 w-2.5" />
       </button>
-      {label}
-    </label>
+      <span className="text-sm text-slate-600">{label}</span>
+      {tooltip && <TooltipInfo text={tooltip} />}
+    </div>
   )
 }
 

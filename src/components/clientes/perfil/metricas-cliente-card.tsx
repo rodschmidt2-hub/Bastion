@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { Pencil, Check, X } from 'lucide-react'
 import { updateCustoAquisicao } from '@/app/actions/clientes-metricas'
+import { TooltipInfo } from '@/components/ui/tooltip-info'
 
 type MetricasData = {
   mrr: number
@@ -36,6 +37,17 @@ function Semaforo({ ratio }: { ratio: number | null }) {
       </div>
     </div>
   )
+}
+
+const TOOLTIPS: Record<string, string> = {
+  'Ticket Médio (MRR)': 'Receita mensal recorrente atual deste cliente. Soma de todos os produtos ativos com periodicidade mensal.',
+  'ARR do Cliente': 'Annual Recurring Revenue — projeção anual da receita deste cliente (MRR × 12).',
+  'LTV Acumulado': 'Total efetivamente recebido deste cliente desde o início. Calculado com base nas faturas pagas.',
+  'Margem de Contribuição': 'Percentual da receita que sobra após descontar o custo base dos produtos entregues.',
+  'Payback Period': 'Meses necessários para recuperar o custo de aquisição (CAC ÷ MRR). Até 12 meses é considerado bom.',
+  'Tenure': 'Tempo total de relacionamento em meses, contado desde a data de início ou cadastro do cliente.',
+  'CAC': 'Customer Acquisition Cost — custo para adquirir este cliente (prospecção, vendas, onboarding). Editável pelo admin.',
+  'LTV / CAC': 'Relação entre o valor gerado (LTV) e o custo de aquisição (CAC). Abaixo de 3× exige atenção.',
 }
 
 export function MetricasClienteCard({ clienteId, data }: { clienteId: string; data: MetricasData }) {
@@ -73,14 +85,20 @@ export function MetricasClienteCard({ clienteId, data }: { clienteId: string; da
       <div className="grid grid-cols-2 gap-3">
         {metricas.map((m) => (
           <div key={m.label} className="rounded-lg bg-slate-50 px-3 py-2.5">
-            <p className="text-xs text-slate-400">{m.label}</p>
+            <div className="flex items-center gap-1">
+              <p className="text-xs text-slate-400">{m.label}</p>
+              {TOOLTIPS[m.label] && <TooltipInfo text={TOOLTIPS[m.label]} />}
+            </div>
             <p className="mt-0.5 text-sm font-semibold text-slate-800">{m.value}</p>
           </div>
         ))}
 
         {/* CAC — editável */}
         <div className="rounded-lg bg-slate-50 px-3 py-2.5">
-          <p className="text-xs text-slate-400">CAC</p>
+          <div className="flex items-center gap-1">
+            <p className="text-xs text-slate-400">CAC</p>
+            <TooltipInfo text={TOOLTIPS['CAC']} />
+          </div>
           {editingCac ? (
             <div className="mt-0.5 flex items-center gap-1">
               <input
@@ -116,7 +134,10 @@ export function MetricasClienteCard({ clienteId, data }: { clienteId: string; da
 
         {/* LTV/CAC */}
         <div className="rounded-lg bg-slate-50 px-3 py-2.5">
-          <p className="text-xs text-slate-400">LTV / CAC</p>
+          <div className="flex items-center gap-1">
+            <p className="text-xs text-slate-400">LTV / CAC</p>
+            <TooltipInfo text={TOOLTIPS['LTV / CAC']} />
+          </div>
           <div className="mt-1">
             <Semaforo ratio={ltvcac} />
           </div>

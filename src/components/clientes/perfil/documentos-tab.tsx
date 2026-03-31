@@ -1,9 +1,12 @@
 'use client'
 
 import { useState, useTransition, useRef } from 'react'
-import { Upload, Download, Trash2, FileText } from 'lucide-react'
+import { Upload, Download, Trash2, FileText, Sparkles } from 'lucide-react'
 import { uploadDocumento, deleteDocumento, getDocumentoUrl } from '@/app/actions/documentos'
+import { TooltipInfo } from '@/components/ui/tooltip-info'
+import { GerarDocumentoModal } from './gerar-documento-modal'
 import type { Documento, DocumentoTipo } from '@/types/database'
+import type { ModeloItem } from '@/app/actions/gerar-documento'
 
 const tipoLabel: Record<DocumentoTipo, string> = {
   contrato:     'Contrato',
@@ -31,12 +34,14 @@ function formatBytes(bytes: number | null): string {
 interface DocumentosTabProps {
   clienteId: string
   documentos: Documento[]
+  modelos:   ModeloItem[]
 }
 
-export function DocumentosTab({ clienteId, documentos }: DocumentosTabProps) {
+export function DocumentosTab({ clienteId, documentos, modelos }: DocumentosTabProps) {
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
+  const [showGerar, setShowGerar] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
 
   function handleUpload(formData: FormData) {
@@ -64,7 +69,24 @@ export function DocumentosTab({ clienteId, documentos }: DocumentosTabProps) {
 
   return (
     <div className="p-6 space-y-5">
-      <div className="flex justify-end">
+      {showGerar && (
+        <GerarDocumentoModal
+          clienteId={clienteId}
+          modelos={modelos}
+          onClose={() => setShowGerar(false)}
+          onSuccess={() => setShowGerar(false)}
+        />
+      )}
+
+      <div className="flex justify-end gap-2">
+        {modelos.length > 0 && (
+          <button
+            onClick={() => setShowGerar(true)}
+            className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            <Sparkles className="h-4 w-4 text-blue-500" /> Gerar a partir de modelo
+          </button>
+        )}
         <button
           onClick={() => setShowForm(true)}
           className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
@@ -82,7 +104,10 @@ export function DocumentosTab({ clienteId, documentos }: DocumentosTabProps) {
               <input name="file" type="file" required accept=".pdf,.png,.jpg,.jpeg" className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-blue-50 file:px-2 file:py-1 file:text-xs file:font-medium file:text-blue-700" />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-600">Tipo de documento</label>
+              <div className="mb-1 flex items-center gap-1">
+                <label className="text-xs font-medium text-slate-600">Tipo de documento</label>
+                <TooltipInfo text="Contrato: acordo comercial assinado. Procuração: autorização legal para agir em nome do cliente. Autorização: aprovação específica (ex: veicular anúncios). Nota Fiscal: comprovante emitido pela clínica. Outro: demais documentos relevantes." />
+              </div>
               <select name="tipo" className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-100">
                 <option value="contrato">Contrato</option>
                 <option value="procuracao">Procuração</option>

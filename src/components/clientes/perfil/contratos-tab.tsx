@@ -3,6 +3,7 @@
 import { useState, useTransition, useRef } from 'react'
 import { Plus, X, AlertTriangle, FileText, CheckCircle2, Clock } from 'lucide-react'
 import { createContrato, updateContratoStatus, assinarContrato } from '@/app/actions/contratos'
+import { TooltipInfo } from '@/components/ui/tooltip-info'
 import type { Contrato, ContratoStatus, ProdutoContratadoView } from '@/types/database'
 
 const statusMap: Record<ContratoStatus, { label: string; badge: string }> = {
@@ -197,15 +198,19 @@ export function ContratosTab({ clienteId, contratos, produtos }: ContratosTabPro
               {(c as any).is_assinado ? (
                 <span className="shrink-0 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
                   <CheckCircle2 className="h-3 w-3" /> Assinado
+                  <TooltipInfo text="Contrato marcado como assinado. Necessário para ativar o cliente." />
                 </span>
               ) : (
-                <button
-                  onClick={() => handleAssinar(c.id)}
-                  disabled={signPending}
-                  className="shrink-0 inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-40"
-                >
-                  <Clock className="h-3 w-3" /> Marcar como assinado
-                </button>
+                <span className="shrink-0 inline-flex items-center gap-1">
+                  <button
+                    onClick={() => handleAssinar(c.id)}
+                    disabled={signPending}
+                    className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+                  >
+                    <Clock className="h-3 w-3" /> Marcar como assinado
+                  </button>
+                  <TooltipInfo text="Contrato ainda não assinado. Sem assinatura, o cliente não pode ser ativado." />
+                </span>
               )}
 
               {/* ClickSign placeholder */}
@@ -265,8 +270,9 @@ export function ContratosTab({ clienteId, contratos, produtos }: ContratosTabPro
 
                 {mrrContrato > 0 && (
                   <div className={`mt-4 flex items-center justify-between border-t pt-3 ${isExpiring ? 'border-amber-200' : 'border-slate-200'}`}>
-                    <span className={`text-xs font-medium ${isExpiring ? 'text-amber-700' : 'text-slate-500'}`}>
+                    <span className={`flex items-center gap-1 text-xs font-medium ${isExpiring ? 'text-amber-700' : 'text-slate-500'}`}>
                       Fatura mensal gerada por este contrato
+                      <TooltipInfo text="Soma dos valores efetivos de todos os produtos recorrentes ativos neste contrato." />
                     </span>
                     <span className="text-base font-extrabold text-slate-900">{fmt(mrrContrato)}/mês</span>
                   </div>

@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from 'react'
 import { X } from 'lucide-react'
 import { createCliente, updateCliente } from '@/app/actions/clientes'
+import { TooltipInfo } from '@/components/ui/tooltip-info'
 import type { Cliente, Profile } from '@/types/database'
 
 const segmentoOptions = [
@@ -82,8 +83,20 @@ export function ClienteDrawer({ open, onClose, cliente, responsaveis }: ClienteD
                 <Field label="Nome da clínica *" name="nome" defaultValue={cliente?.razao_social} placeholder="Clínica Exemplo" />
                 <Field label="CNPJ" name="cnpj" defaultValue={cliente?.cnpj ?? ''} placeholder="00.000.000/0001-00" />
                 <div className="grid grid-cols-2 gap-3">
-                  <SelectField label="Segmento" name="segmento" defaultValue={cliente?.segmento ?? ''} options={segmentoOptions} />
-                  <SelectField label="Porte" name="porte" defaultValue={cliente?.porte ?? ''} options={porteOptions} />
+                  <SelectField
+                    label="Segmento"
+                    name="segmento"
+                    defaultValue={cliente?.segmento ?? ''}
+                    options={segmentoOptions}
+                    tooltip="Solo: clínica com um profissional. Rede: múltiplas unidades ou franquias. Especialidade: focada em uma área específica."
+                  />
+                  <SelectField
+                    label="Porte"
+                    name="porte"
+                    defaultValue={cliente?.porte ?? ''}
+                    options={porteOptions}
+                    tooltip="Pequeno: até 2 profissionais. Médio: equipe estabelecida. Grande: operação com múltiplos profissionais ou unidades."
+                  />
                 </div>
               </div>
             </section>
@@ -103,7 +116,10 @@ export function ClienteDrawer({ open, onClose, cliente, responsaveis }: ClienteD
 
             {/* Responsável financeiro */}
             <section>
-              <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Responsável financeiro</h3>
+              <div className="mb-3 flex items-center gap-1">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Responsável financeiro</h3>
+                <TooltipInfo text="Pessoa que autoriza pagamentos e recebe cobranças e faturas. Pode ser diferente do dono da clínica." />
+              </div>
               <div className="space-y-3">
                 <Field label="Nome" name="resp_financeiro_nome" defaultValue={cliente?.resp_financeiro_nome ?? ''} placeholder="Nome completo" />
                 <div className="grid grid-cols-2 gap-3">
@@ -115,7 +131,10 @@ export function ClienteDrawer({ open, onClose, cliente, responsaveis }: ClienteD
 
             {/* Decisor */}
             <section>
-              <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Decisor / dono</h3>
+              <div className="mb-3 flex items-center gap-1">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Decisor / dono</h3>
+                <TooltipInfo text="Proprietário ou sócio com poder de decisão. Contato estratégico para renovações, upsells e decisões importantes." />
+              </div>
               <div className="space-y-3">
                 <Field label="Nome" name="decisor_nome" defaultValue={cliente?.decisor_nome ?? ''} placeholder="Nome completo" />
                 <div className="grid grid-cols-2 gap-3">
@@ -130,7 +149,10 @@ export function ClienteDrawer({ open, onClose, cliente, responsaveis }: ClienteD
               <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Gestão interna</h3>
               <div className="space-y-3">
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-slate-700">Responsável interno</label>
+                  <div className="mb-1.5 flex items-center gap-1">
+                    <label className="text-sm font-medium text-slate-700">Responsável interno</label>
+                    <TooltipInfo text="Membro da equipe da agência responsável pelo relacionamento com este cliente. Recebe alertas e aparece nos relatórios." />
+                  </div>
                   <select
                     name="responsavel_interno_id"
                     defaultValue={cliente?.responsavel_id ?? ''}
@@ -206,13 +228,16 @@ function Field({
 }
 
 function SelectField({
-  label, name, defaultValue, options,
+  label, name, defaultValue, options, tooltip,
 }: {
-  label: string; name: string; defaultValue: string; options: { value: string; label: string }[]
+  label: string; name: string; defaultValue: string; options: { value: string; label: string }[]; tooltip?: string
 }) {
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-medium text-slate-700">{label}</label>
+      <div className="mb-1.5 flex items-center gap-1">
+        <label className="text-sm font-medium text-slate-700">{label}</label>
+        {tooltip && <TooltipInfo text={tooltip} />}
+      </div>
       <select
         name={name}
         defaultValue={defaultValue}

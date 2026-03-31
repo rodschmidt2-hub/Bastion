@@ -1,6 +1,22 @@
 {
   "crons": [
     {
+      "path": "/api/cron/gerar-faturas",
+      "schedule": "0 7 * * *"
+    },
+    {
+      "path": "/api/cron/checar-suspensoes",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/alertas-renovacao",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/processar-reajustes",
+      "schedule": "0 10 * * *"
+    },
+    {
       "path": "/api/cron/mrr-snapshot",
       "schedule": "0 6 1 * *"
     }

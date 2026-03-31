@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { saveNotaFinanceira } from '@/app/actions/clientes'
+import { TooltipInfo } from '@/components/ui/tooltip-info'
 
 export function NotaFinanceira({ clienteId, nota }: { clienteId: string; nota: string | null }) {
   const [value, setValue] = useState(nota ?? '')
@@ -24,7 +25,10 @@ export function NotaFinanceira({ clienteId, nota }: { clienteId: string; nota: s
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-5">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-slate-800">Notas Financeiras Internas</h3>
+        <div className="flex items-center gap-1">
+          <h3 className="text-sm font-semibold text-slate-800">Notas Financeiras Internas</h3>
+          <TooltipInfo text="Anotações internas da agência sobre situação financeira deste cliente. Não visível ao cliente. Salvo automaticamente." />
+        </div>
         {saved && <span className="text-xs text-emerald-600">Salvo ✓</span>}
       </div>
       <textarea

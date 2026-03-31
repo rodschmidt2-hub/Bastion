@@ -34,6 +34,8 @@ export async function createProduto(formData: FormData) {
   const valorStr = formData.get('valor_padrao') as string
   const custoStr = formData.get('custo_base') as string
 
+  const modeloId = (formData.get('modelo_id') as string) || null
+
   const { error } = await supabase.from('produtos_agencia').insert({
     agencia_id:     profile.agencia_id,
     codigo_produto: `${slugify(nome)}-${Date.now().toString(36)}`,
@@ -43,6 +45,7 @@ export async function createProduto(formData: FormData) {
     periodicidade: tipo === 'pontual' ? null : periodicidade,
     valor_padrao:  valorStr ? parseFloat(valorStr) : null,
     custo_base:    custoStr ? parseFloat(custoStr) : null,
+    modelo_id:     modeloId,
   })
 
   if (error) return { error: error.message }
@@ -66,6 +69,7 @@ export async function updateProduto(id: string, formData: FormData) {
 
   const valorStr = formData.get('valor_padrao') as string
   const custoStr = formData.get('custo_base') as string
+  const modeloId = (formData.get('modelo_id') as string) || null
 
   const { error } = await supabase.from('produtos_agencia').update({
     nome,
@@ -74,6 +78,7 @@ export async function updateProduto(id: string, formData: FormData) {
     periodicidade: tipo === 'pontual' ? null : periodicidade,
     valor_padrao:  valorStr ? parseFloat(valorStr) : null,
     custo_base:    custoStr ? parseFloat(custoStr) : null,
+    modelo_id:     modeloId,
   }).eq('id', id)
 
   if (error) return { error: error.message }

@@ -1,11 +1,14 @@
 'use client'
 
 import { useState, useTransition, Fragment } from 'react'
-import { Plus, RefreshCw, Trash2 } from 'lucide-react'
+import { Plus, RefreshCw, Trash2, ArrowLeftRight, ShieldAlert } from 'lucide-react'
+import { TooltipInfo } from '@/components/ui/tooltip-info'
 import { atualizarStatusContratoItem, removerProdutoCliente } from '@/app/actions/contratos'
 import { AdicionarProdutoModal } from './adicionar-produto-modal'
 import { RenovacaoModal } from './renovacao-modal'
 import { RenovacoesHistorico } from './renovacoes-historico'
+import { AlterarProdutoModal } from './alterar-produto-modal'
+import { AlteracoesHistorico } from './alteracoes-historico'
 import type { ProdutoContratadoView, ProdutoAgencia, ProdutoOferta, ProdutoStatus, Contrato, Renovacao, UserRole } from '@/types/database'
 
 function daysUntil(dateStr: string): number {
@@ -59,13 +62,17 @@ interface ProdutosTabProps {
   catalogo: ProdutoAgencia[]
   ofertasMap: Record<string, ProdutoOferta[]>
   renovacoesMap: Record<string, any[]>
+  alteracoesMap: Record<string, any[]>
   userRole?: UserRole
 }
 
-export function ProdutosTab({ clienteId, contratoAtivo, produtos, catalogo, ofertasMap, renovacoesMap, userRole }: ProdutosTabProps) {
+export function ProdutosTab({ clienteId, contratoAtivo, produtos, catalogo, ofertasMap, renovacoesMap, alteracoesMap, userRole }: ProdutosTabProps) {
   const [isPending, startTransition] = useTransition()
   const [showAdd, setShowAdd] = useState(false)
   const [renovandoItem, setRenovandoItem] = useState<ProdutoContratadoView | null>(null)
+  const [alterandoItem, setAlterandoItem] = useState<ProdutoContratadoView | null>(null)
+
+  const podeAlterar = userRole === 'gestor' || userRole === 'admin'
 
   const mrr = produtos
     .filter((p) => p.item_status === 'ativo')
@@ -90,7 +97,10 @@ export function ProdutosTab({ clienteId, contratoAtivo, produtos, catalogo, ofer
     <div className="p-6 space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">MRR desta conta</p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">MRR desta conta</p>
+            <TooltipInfo text="Soma da receita mensal recorrente de todos os produtos ativos deste cliente." />
+          </div>
           <p className="mt-[6px] text-[26px] font-bold leading-tight text-slate-900">
             {mrr.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
           </p>
@@ -128,8 +138,16 @@ export function ProdutosTab({ clienteId, contratoAtivo, produtos, catalogo, ofer
                       <p className="font-medium text-slate-800">{p.produto_nome ?? '—'}</p>
                       {p.categoria && <p className="text-xs text-slate-400">{p.categoria}</p>}
                     </td>
-                    <td className="px-4 py-3 text-right font-medium text-slate-700">
-                      {(p.valor_efetivo ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                    <td className="px-4 py-3 text-right">
+                      <p className="font-medium text-slate-700">
+                        {(p.valor_efetivo ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                      </p>
+                      {(p as any).valor_especial != null && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 border border-amber-200 mt-0.5">
+                          <ShieldAlert className="h-2.5 w-2.5" />
+                          Negociação especial
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-slate-500 capitalize">
                       {p.periodicidade ?? '—'}
@@ -162,6 +180,16 @@ export function ProdutosTab({ clienteId, contratoAtivo, produtos, catalogo, ofer
                             Renovar
                           </button>
                         )}
+                        {podeAlterar && p.id && p.item_status === 'ativo' && (
+                          <button
+                            onClick={() => setAlterandoItem(p)}
+                            className="flex items-center gap-1 rounded-lg border border-blue-100 px-2.5 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50"
+                            title="Alterar produto"
+                          >
+                            <ArrowLeftRight className="h-3 w-3" />
+                            Alterar
+                          </button>
+                        )}
                         {p.id && (
                           <button
                             onClick={() => handleRemover(p)}
@@ -181,6 +209,27 @@ export function ProdutosTab({ clienteId, contratoAtivo, produtos, catalogo, ofer
                         <RenovacoesHistorico
                           itemId={p.id}
                           renovacoes={renovacoesMap[p.id] ?? []}
+                        />
+                      </td>
+                    </tr>
+                  )}
+                  {p.id && (alteracoesMap[p.id] ?? []).length > 0 && (
+                    <tr>
+                      <td colSpan={6} className="p-0">
+                        <AlteracoesHistorico
+                          itemId={p.id}
+                          alteracoes={(alteracoesMap[p.id] ?? []).map((a: any) => ({
+                            id: a.id,
+                            created_at: a.created_at,
+                            produto_anterior: a.produto_anterior,
+                            produto_novo: a.produto_novo,
+                            valor_anterior: a.valor_anterior,
+                            valor_novo: a.valor_novo,
+                            delta: a.delta ?? (a.valor_novo - a.valor_anterior),
+                            tipo: a.tipo,
+                            motivo: a.motivo,
+                            alterado_por_nome: a.alterado_por_perfil?.nome ?? null,
+                          }))}
                         />
                       </td>
                     </tr>
@@ -208,6 +257,17 @@ export function ProdutosTab({ clienteId, contratoAtivo, produtos, catalogo, ofer
           onClose={() => setRenovandoItem(null)}
           item={renovandoItem}
           clienteId={clienteId}
+        />
+      )}
+
+      {alterandoItem && (
+        <AlterarProdutoModal
+          open={!!alterandoItem}
+          onClose={() => setAlterandoItem(null)}
+          item={alterandoItem}
+          clienteId={clienteId}
+          catalogo={catalogo}
+          ofertasMap={ofertasMap}
         />
       )}
     </div>

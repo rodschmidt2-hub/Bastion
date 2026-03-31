@@ -5,6 +5,7 @@ import { Pencil, Ban, RotateCcw, PlayCircle } from 'lucide-react'
 import { ClienteDrawer } from '../cliente-drawer'
 import { DesativarModal } from './desativar-modal'
 import { ativarCliente } from '@/app/actions/clientes'
+import { TooltipInfo } from '@/components/ui/tooltip-info'
 import type { Cliente, Profile, Contrato } from '@/types/database'
 
 interface PerfilActionsBarProps {
@@ -40,30 +41,36 @@ export function PerfilActionsBar({ cliente, responsaveis, contratos = [] }: Perf
         </button>
 
         {isPendente ? (
-          <button
-            onClick={handleAtivar}
-            disabled={!temContratoAssinado || ativarPending}
-            title={!temContratoAssinado ? 'Aguardando contrato assinado' : 'Ativar cliente'}
-            className="flex items-center gap-1.5 rounded-lg border border-blue-200 px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 transition disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            <PlayCircle className="h-3.5 w-3.5" />
-            {ativarPending ? 'Ativando...' : 'Ativar cliente'}
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={handleAtivar}
+              disabled={!temContratoAssinado || ativarPending}
+              title={!temContratoAssinado ? 'Aguardando contrato assinado' : 'Ativar cliente'}
+              className="flex items-center gap-1.5 rounded-lg border border-blue-200 px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 transition disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <PlayCircle className="h-3.5 w-3.5" />
+              {ativarPending ? 'Ativando...' : 'Ativar cliente'}
+            </button>
+            <TooltipInfo text="Ativa o cliente e inicia o contrato. Requer ao menos um contrato marcado como assinado na aba Contratos." />
+          </div>
         ) : (
-          <button
-            onClick={() => setDesativarOpen(true)}
-            className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition ${
-              isInativo
-                ? 'border-emerald-200 text-emerald-700 hover:bg-emerald-50'
-                : 'border-red-200 text-red-600 hover:bg-red-50'
-            }`}
-          >
-            {isInativo ? (
-              <><RotateCcw className="h-3.5 w-3.5" /> Reativar</>
-            ) : (
-              <><Ban className="h-3.5 w-3.5" /> Desativar</>
-            )}
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setDesativarOpen(true)}
+              className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition ${
+                isInativo
+                  ? 'border-emerald-200 text-emerald-700 hover:bg-emerald-50'
+                  : 'border-red-200 text-red-600 hover:bg-red-50'
+              }`}
+            >
+              {isInativo ? (
+                <><RotateCcw className="h-3.5 w-3.5" /> Reativar</>
+              ) : (
+                <><Ban className="h-3.5 w-3.5" /> Desativar</>
+              )}
+            </button>
+            <TooltipInfo text={isInativo ? 'Reativa o cliente, restaurando o acesso e os produtos ativos.' : 'Pausa ou encerra o relacionamento com o cliente. Registra a data e motivo no histórico.'} />
+          </div>
         )}
 
         <button className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs text-slate-500 hover:bg-slate-50 transition">

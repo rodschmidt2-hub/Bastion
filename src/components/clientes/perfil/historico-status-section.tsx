@@ -1,4 +1,5 @@
 import { CheckCircle, XCircle, AlertCircle } from 'lucide-react'
+import { TooltipInfo } from '@/components/ui/tooltip-info'
 
 type EventoStatus = {
   id: string
@@ -20,9 +21,10 @@ export function HistoricoStatusSection({ eventos }: { eventos: EventoStatus[] })
 
   return (
     <div className="mt-6">
-      <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
-        Histórico de Status
-      </h3>
+      <div className="mb-3 flex items-center gap-1">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Histórico de Status</h3>
+        <TooltipInfo text="Registro de todas as mudanças de status do cliente. Ativo: em operação normal. Inadimplente: com pagamentos atrasados. Suspenso: serviços pausados. Inativo: sem contrato vigente." />
+      </div>
       <ol className="space-y-3">
         {eventos.map((e) => {
           const dados = e.dados as any

@@ -19,12 +19,16 @@ const periodicidadeLabel: Record<string, string> = {
   anual:       'Anual',
 }
 
+interface ModeloSimples { id: string; nome: string; tipo: string }
+
 interface ProdutosTableProps {
   produtos: ProdutoAgencia[]
   ofertasMap: Record<string, ProdutoOferta[]>
+  categorias?: string[]
+  modelos?: ModeloSimples[]
 }
 
-export function ProdutosTable({ produtos, ofertasMap }: ProdutosTableProps) {
+export function ProdutosTable({ produtos, ofertasMap, categorias = [], modelos = [] }: ProdutosTableProps) {
   const [drawerOpen, setDrawerOpen]     = useState(false)
   const [editing, setEditing]           = useState<ProdutoAgencia | null>(null)
   const [isPending, startTransition]    = useTransition()
@@ -146,6 +150,8 @@ export function ProdutosTable({ produtos, ofertasMap }: ProdutosTableProps) {
         onClose={() => setDrawerOpen(false)}
         produto={editing}
         ofertas={editing ? (ofertasMap[editing.id] ?? []) : []}
+        categorias={categorias}
+        modelos={modelos}
       />
     </>
   )

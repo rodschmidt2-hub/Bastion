@@ -206,3 +206,107 @@ export async function atualizarStatusContratoItem(
   revalidatePath(`/clientes/${clienteId}`)
   return { success: true }
 }
+
+export async function alterarProdutoCliente(
+  itemAnteriorId: string,
+  clienteId: string,
+  formData: FormData,
+) {
+  const supabase = await createClient()
+  const profile = await getProfile()
+  if (!profile?.agencia_id) return { error: 'Perfil não encontrado' }
+
+  // Apenas gestor e admin podem alterar produto
+  if (profile.role !== 'gestor' && profile.role !== 'admin') {
+    return { error: 'Sem permissão para alterar produto' }
+  }
+
+  const novoProdutoId = formData.get('produto_agencia_id') as string
+  if (!novoProdutoId) return { error: 'Produto é obrigatório' }
+
+  const valorStr = formData.get('valor_negociado') as string
+  if (!valorStr) return { error: 'Valor é obrigatório' }
+
+  const dataInicio = formData.get('data_inicio') as string
+  if (!dataInicio) return { error: 'Data de início é obrigatória' }
+
+  const encerrarAnterior = formData.get('encerrar_anterior') === 'true'
+  const dataEncerramentoStr = formData.get('data_encerramento') as string | null
+  const motivo = (formData.get('motivo') as string) || null
+  const ofertaId = (formData.get('oferta_id') as string) || null
+
+  // Busca dados do item anterior
+  const { data: itemAnterior } = await supabase
+    .from('contrato_itens')
+    .select('contrato_id, produto_id, valor_negociado, valor_especial, agencia_id')
+    .eq('id', itemAnteriorId)
+    .single()
+
+  if (!itemAnterior) return { error: 'Item anterior não encontrado' }
+
+  // Busca nomes dos produtos para o histórico
+  const produtoIds = [itemAnterior.produto_id, novoProdutoId].filter(Boolean)
+  const { data: produtos } = await supabase
+    .from('produtos_agencia')
+    .select('id, nome')
+    .in('id', produtoIds)
+
+  const nomesMap: Record<string, string> = {}
+  for (const p of (produtos ?? [])) nomesMap[p.id] = p.nome
+
+  const valorAnterior = itemAnterior.valor_especial ?? itemAnterior.valor_negociado
+  const valorNovo = parseFloat(valorStr)
+
+  const tipo: 'upsell' | 'downsell' | 'lateral' =
+    valorNovo > valorAnterior ? 'upsell' :
+    valorNovo < valorAnterior ? 'downsell' : 'lateral'
+
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // 1. Encerrar item anterior se solicitado
+  if (encerrarAnterior) {
+    const dataEnc = dataEncerramentoStr || new Date().toISOString().split('T')[0]
+    const { error: errEnc } = await supabase
+      .from('contrato_itens')
+      .update({ data_fim_item: dataEnc, status: 'cancelado' as ProdutoStatus })
+      .eq('id', itemAnteriorId)
+    if (errEnc) return { error: errEnc.message }
+  }
+
+  // 2. Cria novo item
+  const { data: novoItem, error: errNovo } = await supabase
+    .from('contrato_itens')
+    .insert({
+      agencia_id:       profile.agencia_id,
+      contrato_id:      itemAnterior.contrato_id,
+      produto_id:       novoProdutoId,
+      oferta_id:        ofertaId,
+      valor_negociado:  valorNovo,
+      data_inicio_item: dataInicio,
+      status:           'ativo' as ProdutoStatus,
+    } as any)
+    .select('id')
+    .single()
+
+  if (errNovo || !novoItem) return { error: errNovo?.message ?? 'Erro ao criar item' }
+
+  // 3. Registra histórico de alteração
+  await supabase.from('alteracoes_produto').insert({
+    agencia_id:       profile.agencia_id,
+    cliente_id:       clienteId,
+    contrato_id:      itemAnterior.contrato_id,
+    item_anterior_id: itemAnteriorId,
+    item_novo_id:     novoItem.id,
+    produto_anterior: nomesMap[itemAnterior.produto_id] ?? itemAnterior.produto_id,
+    produto_novo:     nomesMap[novoProdutoId] ?? novoProdutoId,
+    valor_anterior:   valorAnterior,
+    valor_novo:       valorNovo,
+    tipo,
+    motivo,
+    alterado_por:     user?.id ?? null,
+  } as any)
+
+  revalidatePath(`/clientes/${clienteId}`)
+  revalidatePath('/contratos')
+  return { success: true }
+}

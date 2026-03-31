@@ -2,6 +2,7 @@
 
 import { ContatosSection } from '@/components/clientes/perfil/contatos-section'
 import { HistoricoStatusSection } from '@/components/clientes/perfil/historico-status-section'
+import { TooltipInfo } from '@/components/ui/tooltip-info'
 import type { Cliente, ContatoCliente, Profile } from '@/types/database'
 
 const segmentoLabel = { solo: 'Solo', rede: 'Rede', especialidade: 'Especialidade' }
@@ -23,8 +24,16 @@ export function DadosTab({ cliente, responsaveis, historico, contatos, eventosSt
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Section title="Clínica">
           <Row label="CNPJ" value={cliente.cnpj} />
-          <Row label="Segmento" value={cliente.segmento ? segmentoLabel[cliente.segmento as keyof typeof segmentoLabel] ?? cliente.segmento : null} />
-          <Row label="Porte" value={cliente.porte ? porteLabel[cliente.porte as keyof typeof porteLabel] : null} />
+          <Row
+            label="Segmento"
+            value={cliente.segmento ? segmentoLabel[cliente.segmento as keyof typeof segmentoLabel] ?? cliente.segmento : null}
+            tooltip="Solo: clínica independente com um único profissional. Rede: grupo com múltiplas unidades ou franquias. Especialidade: clínica focada em uma área específica (ex: ortopedia, estética)."
+          />
+          <Row
+            label="Porte"
+            value={cliente.porte ? porteLabel[cliente.porte as keyof typeof porteLabel] : null}
+            tooltip="Pequeno: até 2 profissionais ou faturamento inicial. Médio: equipe estabelecida e fluxo consistente. Grande: operação robusta com múltiplos profissionais ou unidades."
+          />
         </Section>
 
         <Section title="Endereço">
@@ -35,19 +44,19 @@ export function DadosTab({ cliente, responsaveis, historico, contatos, eventosSt
           <Row label="CEP" value={cliente.cep} />
         </Section>
 
-        <Section title="Responsável financeiro">
+        <Section title="Responsável financeiro" tooltip="Pessoa que autoriza pagamentos e recebe cobranças. Pode ser diferente do dono da clínica.">
           <Row label="Nome" value={cliente.resp_financeiro_nome} />
           <Row label="Email" value={cliente.resp_financeiro_email} />
           <Row label="Telefone" value={cliente.resp_financeiro_telefone} />
         </Section>
 
-        <Section title="Decisor / Dono">
+        <Section title="Decisor / Dono" tooltip="Proprietário ou sócio com poder de decisão sobre contratações e estratégia. Contato para negociações e renovações importantes.">
           <Row label="Nome" value={cliente.decisor_nome} />
           <Row label="Email" value={cliente.decisor_email} />
           <Row label="Telefone" value={cliente.decisor_telefone} />
         </Section>
 
-        <Section title="Gestão interna">
+        <Section title="Gestão interna" tooltip="Informações internas da agência sobre este cliente. O responsável é o membro da equipe que gerencia o relacionamento.">
           <Row label="Responsável" value={responsavel?.nome ?? responsavel?.email ?? null} />
           <Row label="Observações" value={cliente.observacoes} />
         </Section>
@@ -76,19 +85,25 @@ export function DadosTab({ cliente, responsaveis, historico, contatos, eventosSt
   )
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, tooltip, children }: { title: string; tooltip?: string; children: React.ReactNode }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
-      <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">{title}</h3>
+      <div className="mb-3 flex items-center gap-1">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400">{title}</h3>
+        {tooltip && <TooltipInfo text={tooltip} />}
+      </div>
       <dl className="space-y-2">{children}</dl>
     </div>
   )
 }
 
-function Row({ label, value }: { label: string; value: string | null | undefined }) {
+function Row({ label, value, tooltip }: { label: string; value: string | null | undefined; tooltip?: string }) {
   return (
     <div className="flex items-start justify-between gap-4">
-      <dt className="text-sm text-slate-500 shrink-0">{label}</dt>
+      <dt className="flex items-center gap-1 text-sm text-slate-500 shrink-0">
+        {label}
+        {tooltip && <TooltipInfo text={tooltip} />}
+      </dt>
       <dd className="text-sm font-medium text-slate-800 text-right">{value || <span className="text-slate-300">—</span>}</dd>
     </div>
   )

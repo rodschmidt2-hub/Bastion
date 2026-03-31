@@ -7,7 +7,9 @@ ALTER TABLE contrato_itens
   ADD COLUMN IF NOT EXISTS valor_especial_por     UUID REFERENCES auth.users(id);
 
 -- 2. Atualiza view: valor_efetivo prioriza valor_especial se preenchido
-CREATE OR REPLACE VIEW produtos_contratados AS
+-- CASCADE necessário porque mrr_snapshot depende da view
+DROP VIEW IF EXISTS produtos_contratados CASCADE;
+CREATE VIEW produtos_contratados AS
   SELECT
     ci.id,
     ci.agencia_id,
@@ -48,3 +50,23 @@ CREATE OR REPLACE VIEW produtos_contratados AS
 
 COMMENT ON VIEW produtos_contratados
   IS 'Itens de contrato ativos. valor_efetivo prioriza valor_especial (negociação restrita), depois descontos, depois valor_negociado.';
+
+-- 3. Recriar mrr_snapshot (foi dropado pelo CASCADE acima)
+CREATE MATERIALIZED VIEW mrr_snapshot AS
+  SELECT
+    pc.agencia_id,
+    DATE_TRUNC('month', NOW())      AS competencia,
+    SUM(pc.valor_efetivo)           AS mrr,
+    SUM(pc.valor_efetivo * 12)      AS arr,
+    COUNT(DISTINCT pc.cliente_id)   AS clientes_ativos,
+    SUM(COALESCE(pc.custo_base, 0)) AS custo_total,
+    ROUND(
+      (1 - SUM(COALESCE(pc.custo_base, 0))
+           / NULLIF(SUM(pc.valor_efetivo), 0)
+      ) * 100, 2
+    )                               AS margem_percentual
+  FROM produtos_contratados pc
+  WHERE pc.produto_tipo = 'recorrente'
+  GROUP BY pc.agencia_id;
+
+CREATE UNIQUE INDEX idx_mrr_snapshot_agencia ON mrr_snapshot (agencia_id);

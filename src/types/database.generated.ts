@@ -258,6 +258,103 @@ export type Database = {
         }
         Relationships: []
       }
+      alteracoes_produto: {
+        Row: {
+          agencia_id: string
+          alterado_por: string | null
+          cliente_id: string
+          contrato_id: string
+          created_at: string
+          delta: number
+          id: string
+          item_anterior_id: string | null
+          item_novo_id: string | null
+          motivo: string | null
+          produto_anterior: string
+          produto_novo: string
+          tipo: string
+          valor_anterior: number
+          valor_novo: number
+        }
+        Insert: {
+          agencia_id: string
+          alterado_por?: string | null
+          cliente_id: string
+          contrato_id: string
+          created_at?: string
+          delta?: number
+          id?: string
+          item_anterior_id?: string | null
+          item_novo_id?: string | null
+          motivo?: string | null
+          produto_anterior: string
+          produto_novo: string
+          tipo: string
+          valor_anterior: number
+          valor_novo: number
+        }
+        Update: {
+          agencia_id?: string
+          alterado_por?: string | null
+          cliente_id?: string
+          contrato_id?: string
+          created_at?: string
+          delta?: number
+          id?: string
+          item_anterior_id?: string | null
+          item_novo_id?: string | null
+          motivo?: string | null
+          produto_anterior?: string
+          produto_novo?: string
+          tipo?: string
+          valor_anterior?: number
+          valor_novo?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alteracoes_produto_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alteracoes_produto_contrato_id_fkey"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contratos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alteracoes_produto_item_anterior_id_fkey"
+            columns: ["item_anterior_id"]
+            isOneToOne: false
+            referencedRelation: "contrato_itens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alteracoes_produto_item_anterior_id_fkey"
+            columns: ["item_anterior_id"]
+            isOneToOne: false
+            referencedRelation: "produtos_contratados"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alteracoes_produto_item_novo_id_fkey"
+            columns: ["item_novo_id"]
+            isOneToOne: false
+            referencedRelation: "contrato_itens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alteracoes_produto_item_novo_id_fkey"
+            columns: ["item_novo_id"]
+            isOneToOne: false
+            referencedRelation: "produtos_contratados"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_log: {
         Row: {
           campos_alterados: string[] | null
@@ -1224,6 +1321,41 @@ export type Database = {
         }
         Relationships: []
       }
+      categorias_produto: {
+        Row: {
+          agencia_id: string
+          ativo: boolean
+          created_at: string
+          id: string
+          nome: string
+          ordem: number
+        }
+        Insert: {
+          agencia_id: string
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          nome: string
+          ordem?: number
+        }
+        Update: {
+          agencia_id?: string
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          nome?: string
+          ordem?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categorias_produto_agencia_id_fkey"
+            columns: ["agencia_id"]
+            isOneToOne: false
+            referencedRelation: "agencias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cliente_socios: {
         Row: {
           agencia_id: string
@@ -1504,6 +1636,9 @@ export type Database = {
           oferta_id: string | null
           produto_id: string
           status: Database["public"]["Enums"]["produto_status"]
+          valor_especial: number | null
+          valor_especial_motivo: string | null
+          valor_especial_por: string | null
           valor_negociado: number
         }
         Insert: {
@@ -1526,6 +1661,9 @@ export type Database = {
           oferta_id?: string | null
           produto_id: string
           status?: Database["public"]["Enums"]["produto_status"]
+          valor_especial?: number | null
+          valor_especial_motivo?: string | null
+          valor_especial_por?: string | null
           valor_negociado: number
         }
         Update: {
@@ -1548,6 +1686,9 @@ export type Database = {
           oferta_id?: string | null
           produto_id?: string
           status?: Database["public"]["Enums"]["produto_status"]
+          valor_especial?: number | null
+          valor_especial_motivo?: string | null
+          valor_especial_por?: string | null
           valor_negociado?: number
         }
         Relationships: [
@@ -1584,6 +1725,11 @@ export type Database = {
       contratos: {
         Row: {
           agencia_id: string
+          assinado_em: string | null
+          assinado_por: string | null
+          clicksign_key: string | null
+          clicksign_status: string | null
+          clicksign_webhook: Json | null
           cliente_id: string
           cobrar_durante_pausa: boolean
           cobrar_juros: boolean
@@ -1605,6 +1751,7 @@ export type Database = {
           external_ids: Json
           forma_pagamento: string
           id: string
+          is_assinado: boolean
           juros_atraso_diario: number | null
           motivo_pausa: string | null
           multa_atraso_perc: number | null
@@ -1619,6 +1766,11 @@ export type Database = {
         }
         Insert: {
           agencia_id: string
+          assinado_em?: string | null
+          assinado_por?: string | null
+          clicksign_key?: string | null
+          clicksign_status?: string | null
+          clicksign_webhook?: Json | null
           cliente_id: string
           cobrar_durante_pausa?: boolean
           cobrar_juros?: boolean
@@ -1640,6 +1792,7 @@ export type Database = {
           external_ids?: Json
           forma_pagamento: string
           id?: string
+          is_assinado?: boolean
           juros_atraso_diario?: number | null
           motivo_pausa?: string | null
           multa_atraso_perc?: number | null
@@ -1654,6 +1807,11 @@ export type Database = {
         }
         Update: {
           agencia_id?: string
+          assinado_em?: string | null
+          assinado_por?: string | null
+          clicksign_key?: string | null
+          clicksign_status?: string | null
+          clicksign_webhook?: Json | null
           cliente_id?: string
           cobrar_durante_pausa?: boolean
           cobrar_juros?: boolean
@@ -1675,6 +1833,7 @@ export type Database = {
           external_ids?: Json
           forma_pagamento?: string
           id?: string
+          is_assinado?: boolean
           juros_atraso_diario?: number | null
           motivo_pausa?: string | null
           multa_atraso_perc?: number | null
@@ -2217,6 +2376,57 @@ export type Database = {
           },
         ]
       }
+      modelos_documento: {
+        Row: {
+          agencia_id: string
+          arquivo_url: string
+          ativo: boolean
+          created_at: string
+          criado_por: string | null
+          descricao: string | null
+          id: string
+          nome: string
+          tipo: string
+        }
+        Insert: {
+          agencia_id: string
+          arquivo_url: string
+          ativo?: boolean
+          created_at?: string
+          criado_por?: string | null
+          descricao?: string | null
+          id?: string
+          nome: string
+          tipo: string
+        }
+        Update: {
+          agencia_id?: string
+          arquivo_url?: string
+          ativo?: boolean
+          created_at?: string
+          criado_por?: string | null
+          descricao?: string | null
+          id?: string
+          nome?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "modelos_documento_agencia_id_fkey"
+            columns: ["agencia_id"]
+            isOneToOne: false
+            referencedRelation: "agencias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "modelos_documento_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mrr_historico: {
         Row: {
           agencia_id: string
@@ -2648,6 +2858,7 @@ export type Database = {
           created_at: string
           custo_base: number | null
           id: string
+          modelo_id: string | null
           nome: string
           periodicidade: string | null
           tipo: string
@@ -2661,6 +2872,7 @@ export type Database = {
           created_at?: string
           custo_base?: number | null
           id?: string
+          modelo_id?: string | null
           nome: string
           periodicidade?: string | null
           tipo: string
@@ -2674,6 +2886,7 @@ export type Database = {
           created_at?: string
           custo_base?: number | null
           id?: string
+          modelo_id?: string | null
           nome?: string
           periodicidade?: string | null
           tipo?: string
@@ -2685,6 +2898,13 @@ export type Database = {
             columns: ["agencia_id"]
             isOneToOne: false
             referencedRelation: "agencias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "produtos_agencia_modelo_id_fkey"
+            columns: ["modelo_id"]
+            isOneToOne: false
+            referencedRelation: "modelos_documento"
             referencedColumns: ["id"]
           },
         ]
@@ -2983,6 +3203,7 @@ export type Database = {
           produto_nome: string | null
           produto_tipo: string | null
           valor_efetivo: number | null
+          valor_especial: number | null
           valor_negociado: number | null
         }
         Relationships: [
@@ -3030,6 +3251,7 @@ export type Database = {
         | "pausado"
         | "inativo"
         | "suspenso"
+        | "contrato_pendente"
       contrato_status:
         | "ativo"
         | "pausado"
@@ -3185,6 +3407,7 @@ export const Constants = {
         "pausado",
         "inativo",
         "suspenso",
+        "contrato_pendente",
       ],
       contrato_status: [
         "ativo",

@@ -8,26 +8,22 @@ import { toggleOfertaAtivo } from '@/app/actions/ofertas'
 import { OfertaDrawer } from './oferta-drawer'
 import type { ProdutoAgencia, ProdutoOferta } from '@/types/database'
 
-const categorias = [
-  'Marketing Digital',
-  'Redes Sociais',
-  'Tráfego Pago',
-  'SEO',
-  'Site / Landing Page',
-  'Email Marketing',
-  'Gestão de Reputação',
-  'Consultoria',
-  'Outro',
-]
+interface ModeloSimples {
+  id: string
+  nome: string
+  tipo: string
+}
 
 interface ProdutoDrawerProps {
   open: boolean
   onClose: () => void
   produto?: ProdutoAgencia | null
   ofertas?: ProdutoOferta[]
+  categorias?: string[]
+  modelos?: ModeloSimples[]
 }
 
-export function ProdutoDrawer({ open, onClose, produto, ofertas = [] }: ProdutoDrawerProps) {
+export function ProdutoDrawer({ open, onClose, produto, ofertas = [], categorias = [], modelos = [] }: ProdutoDrawerProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [togglePending, startToggleTransition] = useTransition()
@@ -178,6 +174,26 @@ export function ProdutoDrawer({ open, onClose, produto, ofertas = [] }: ProdutoD
                 />
               </div>
             </div>
+
+            {/* Modelo de documento associado */}
+            {modelos.length > 0 && (
+              <div className="border-t border-slate-100 pt-4">
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                  Modelo de documento
+                  <span className="ml-1 text-xs font-normal text-slate-400">(contrato padrão)</span>
+                </label>
+                <select
+                  name="modelo_id"
+                  defaultValue={produto?.modelo_id ?? ''}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                >
+                  <option value="">Sem modelo associado</option>
+                  {modelos.map((m) => (
+                    <option key={m.id} value={m.id}>{m.nome}</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* Variantes — só exibe ao editar */}
             {produto && (

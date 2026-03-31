@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Download } from 'lucide-react'
+import { TooltipInfo } from '@/components/ui/tooltip-info'
 
 const formaLabel: Record<string, string> = {
   pix: 'PIX', boleto: 'Boleto', cartao: 'Cartão', transferencia: 'Transferência', outro: 'Outro',
@@ -88,22 +89,34 @@ export default async function FinanceiroPage() {
       {/* 4 KPI cards */}
       <div className="grid grid-cols-4 gap-4">
         <div className="rounded-xl border border-slate-200 bg-white px-5 py-[18px]">
-          <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">MRR Total</p>
+          <div className="flex items-center gap-1">
+            <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">MRR Total</p>
+            <TooltipInfo text="Monthly Recurring Revenue — soma da receita mensal de todos os produtos ativos (exceto pontuais). Reflete a saúde financeira recorrente da carteira." />
+          </div>
           <p className="mt-[6px] mb-0.5 text-[26px] font-bold leading-tight text-blue-600">{fmt(mrrTotal)}</p>
           <p className="text-[11px] text-slate-400">Produtos ativos</p>
         </div>
         <div className="rounded-xl border border-slate-200 bg-white px-5 py-[18px]">
-          <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">LTV Acumulado</p>
+          <div className="flex items-center gap-1">
+            <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">LTV Acumulado</p>
+            <TooltipInfo text="Lifetime Value — total efetivamente recebido de todos os clientes ao longo do tempo, com base em pagamentos confirmados." />
+          </div>
           <p className="mt-[6px] mb-0.5 text-[26px] font-bold leading-tight text-slate-900">{fmt(ltvAcumulado)}</p>
           <p className="text-[11px] text-slate-400">Histórico confirmado</p>
         </div>
         <div className={`rounded-xl border px-5 py-[18px] ${emAberto > 0 ? 'border-red-200 bg-red-50' : 'border-slate-200 bg-white'}`}>
-          <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">Em aberto</p>
+          <div className="flex items-center gap-1">
+            <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">Em aberto</p>
+            <TooltipInfo text="Total de saldo devedor em faturas pendentes, parciais ou atrasadas. Inclui apenas o valor ainda não pago." />
+          </div>
           <p className={`mt-[6px] mb-0.5 text-[26px] font-bold leading-tight ${emAberto > 0 ? 'text-red-600' : 'text-slate-900'}`}>{fmt(emAberto)}</p>
           <p className="text-[11px] text-slate-400">{inadimplentesCount} cliente{inadimplentesCount !== 1 ? 's' : ''} inadimplente{inadimplentesCount !== 1 ? 's' : ''}</p>
         </div>
         <div className="rounded-xl border border-slate-200 bg-white px-5 py-[18px]">
-          <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">Recebido ({hoje.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')})</p>
+          <div className="flex items-center gap-1">
+            <p className="text-[11px] font-semibold uppercase tracking-[.6px] text-slate-400">Recebido ({hoje.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')})</p>
+            <TooltipInfo text="Soma de todos os pagamentos registrados e confirmados no mês corrente, independente do vencimento da fatura." />
+          </div>
           <p className="mt-[6px] mb-0.5 text-[26px] font-bold leading-tight text-emerald-600">{fmt(recebidoMes)}</p>
           <p className="text-[11px] text-slate-400">Pagamentos confirmados</p>
         </div>
@@ -123,11 +136,19 @@ export default async function FinanceiroPage() {
             <thead>
               <tr className="border-b border-slate-100">
                 <th className="px-4 py-[10px] text-left text-[11px] font-semibold uppercase tracking-[.5px] text-slate-400">Cliente</th>
-                <th className="px-4 py-[10px] text-left text-[11px] font-semibold uppercase tracking-[.5px] text-slate-400">Referência</th>
-                <th className="px-4 py-[10px] text-left text-[11px] font-semibold uppercase tracking-[.5px] text-slate-400">Vencimento</th>
+                <th className="px-4 py-[10px] text-left text-[11px] font-semibold uppercase tracking-[.5px] text-slate-400">
+                  <div className="flex items-center gap-1">Referência <TooltipInfo text="Número da fatura emitida para este cliente." /></div>
+                </th>
+                <th className="px-4 py-[10px] text-left text-[11px] font-semibold uppercase tracking-[.5px] text-slate-400">
+                  <div className="flex items-center gap-1">Vencimento <TooltipInfo text="Data limite para pagamento sem atraso." /></div>
+                </th>
                 <th className="px-4 py-[10px] text-left text-[11px] font-semibold uppercase tracking-[.5px] text-slate-400">Valor</th>
-                <th className="px-4 py-[10px] text-left text-[11px] font-semibold uppercase tracking-[.5px] text-slate-400">Atraso</th>
-                <th className="px-4 py-[10px] text-left text-[11px] font-semibold uppercase tracking-[.5px] text-slate-400">Status</th>
+                <th className="px-4 py-[10px] text-left text-[11px] font-semibold uppercase tracking-[.5px] text-slate-400">
+                  <div className="flex items-center gap-1">Atraso <TooltipInfo text="Dias corridos desde o vencimento. Calculado automaticamente para faturas com status Inadimplente." /></div>
+                </th>
+                <th className="px-4 py-[10px] text-left text-[11px] font-semibold uppercase tracking-[.5px] text-slate-400">
+                  <div className="flex items-center gap-1">Status <TooltipInfo text="Pendente: no prazo. Parcial: pagamento parcial recebido. Inadimplente: vencida sem pagamento." /></div>
+                </th>
                 <th className="px-4 py-[10px]" />
               </tr>
             </thead>
@@ -203,7 +224,9 @@ export default async function FinanceiroPage() {
                 <th className="px-4 py-[10px] text-left text-[11px] font-semibold uppercase tracking-[.5px] text-slate-400">Data</th>
                 <th className="px-4 py-[10px] text-left text-[11px] font-semibold uppercase tracking-[.5px] text-slate-400">Cliente</th>
                 <th className="px-4 py-[10px] text-left text-[11px] font-semibold uppercase tracking-[.5px] text-slate-400">Referência</th>
-                <th className="px-4 py-[10px] text-left text-[11px] font-semibold uppercase tracking-[.5px] text-slate-400">Forma</th>
+                <th className="px-4 py-[10px] text-left text-[11px] font-semibold uppercase tracking-[.5px] text-slate-400">
+                  <div className="flex items-center gap-1">Forma <TooltipInfo text="Método de pagamento utilizado: PIX, Boleto, Cartão, Transferência ou Outro." /></div>
+                </th>
                 <th className="px-4 py-[10px] text-left text-[11px] font-semibold uppercase tracking-[.5px] text-slate-400">Valor</th>
                 <th className="px-4 py-[10px] text-left text-[11px] font-semibold uppercase tracking-[.5px] text-slate-400">Status</th>
               </tr>
