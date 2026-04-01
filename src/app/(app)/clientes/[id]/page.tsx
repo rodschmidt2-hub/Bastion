@@ -15,7 +15,7 @@ import { NpsTab } from '@/components/clientes/perfil/nps-tab'
 import { HealthScoreBadge } from '@/components/clientes/health-score-badge'
 import { calcularHealthScore } from '@/lib/health-score'
 import type { Cliente, Profile, ProdutoContratadoView, ProdutoAgencia, ProdutoOferta, Contrato, Documento, ContatoCliente, NpsRegistro, Renovacao, UserRole } from '@/types/database'
-import type { ModeloItem } from '@/app/actions/gerar-documento'
+import type { ModeloItem } from '@/lib/tipos/documento'
 
 const statusBadge: Record<string, string> = {
   ativo:              'bg-emerald-50 text-emerald-700',

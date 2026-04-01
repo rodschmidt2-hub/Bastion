@@ -6,7 +6,7 @@ import { uploadDocumento, deleteDocumento, getDocumentoUrl } from '@/app/actions
 import { TooltipInfo } from '@/components/ui/tooltip-info'
 import { GerarDocumentoModal } from './gerar-documento-modal'
 import type { Documento, DocumentoTipo } from '@/types/database'
-import type { ModeloItem } from '@/app/actions/gerar-documento'
+import type { ModeloItem } from '@/lib/tipos/documento'
 
 const tipoLabel: Record<DocumentoTipo, string> = {
   contrato:     'Contrato',

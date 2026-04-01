@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { X, FileText, Sparkles, AlertTriangle, ExternalLink } from 'lucide-react'
 import { gerarDocumento } from '@/app/actions/gerar-documento'
-import type { ModeloItem } from '@/app/actions/gerar-documento'
+import type { ModeloItem } from '@/lib/tipos/documento'
 
 interface Props {
   clienteId: string
